@@ -1,2 +1,2 @@
-# faybian-scripts
+# Faybian OS / Scripts
 Faybian OS / Scripts
