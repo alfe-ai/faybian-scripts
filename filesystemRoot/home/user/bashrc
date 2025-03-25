@@ -144,11 +144,11 @@ d() {
     RED='\033[31m'
     NC='\033[0m'
 
-    if mount | grep -q "$TODO"; then
-        echo -e "$TODO mounted: ${GREEN}/mnt/$TODO${NC}"
-    else
-        echo -e "$TODO not mounted: ${RED}not mounted${NC}"
-    fi
+    #if mount | grep -q "$TODO"; then
+    #    echo -e "$TODO mounted: ${GREEN}/mnt/$TODO${NC}"
+    #else
+    #    echo -e "$TODO not mounted: ${RED}not mounted${NC}"
+    #fi
 
     echo ""
     echo "-------------"
@@ -367,4 +367,3 @@ symlink() {
     ln -s "$1" "$2"
 }
 export -f symlink
-
