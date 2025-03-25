@@ -130,7 +130,7 @@ alias n='nano'
 echo "-------------"
 $TEXTC_DIRECTORY/textc.sh --color darkred --text "Language Versions:"
 echo "Node.js version: $(node -v)"
-echo "Python version: $(python --version)"
+#echo "Python version: $(python --version)"
 echo ""
 
 d() {
