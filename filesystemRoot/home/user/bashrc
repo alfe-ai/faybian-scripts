@@ -14,7 +14,7 @@ case $- in
       *) return;;
 esac
 
-HOST_ALIAS="$TODO"
+HOST_ALIAS=$(hostname)
 
 TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils"
 
