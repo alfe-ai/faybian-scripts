@@ -1,0 +1,10 @@
+.patchfiles_ignore/
+.idea/
+node_modules/
+
+*.patch
+*.swp
+.env
+
+# Ignore LibreOffice lock files
+.~lock.*
