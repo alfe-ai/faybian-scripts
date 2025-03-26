@@ -182,7 +182,8 @@ pd
 git() {
     if [ "$1" == "fpush" ] || [ "$1" == "fp" ] || [ "$1" == "f" ]; then
         shift
-        ~/.alfe.sh/git/git_reset/git_fpush.sh "$@"
+        #~/.alfe.sh/git/git_reset/git_fpush.sh "$@"
+        ~/.fayra/Whimsical/git/faybian-git_reset/git_fpush.sh "$@"
     elif [ "$1" == "s" ] || [ "$1" == "status" ]; then
         shift
         sh -c "git status $*" | sed -e '/nothing to commit, working tree clean/ s/.*/\x1b[32m&\x1b[0m/'
