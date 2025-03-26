@@ -367,3 +367,12 @@ symlink() {
     ln -s "$1" "$2"
 }
 export -f symlink
+
+rmn() {
+    if [ "$#" -eq 0 ]; then
+        echo "Usage: rmn <filename>"
+    else
+        rm "$1" && nano "$1"
+    fi
+}
+alias rnm='rmn'
