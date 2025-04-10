@@ -261,6 +261,8 @@ preexec_invoke_exec() {
     [ -n "$COMP_LINE" ] && return
     [[ "$BASH_COMMAND" == "$PROMPT_COMMAND" || "$BASH_COMMAND" == "preexec"* ]] && return
 
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')]"
+
     local command="${BASH_COMMAND}"
     if [[ "$command" == *$'\n'* ]]; then
         command=$(echo "$command" | tr '\n' ';')
@@ -384,3 +386,4 @@ alias rnm='rmn'
 
 alias c='clear'
 alias cl='clear'
+
