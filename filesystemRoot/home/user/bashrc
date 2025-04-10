@@ -1,3 +1,4 @@
+#!/bin/bash
 # File_Rel_Path: 'filesystemRoot/home/user/bashrc'
 # File_Type: '.sh'
 # Squash_Source: 'c3c94ba38425135a53c45b7512332b37321a8eda'
@@ -168,7 +169,7 @@ pd() {
     git remote -v
     echo ""
     echo "-------------"
-    $TEXTC_DIRECTORY/textc.sh --color darkred --text "Current Directory:"
+    $TEXTC_DIRECTORY.textc.sh --color darkred --text "Current Directory:"
     pwd
     echo "-------------"
 }
@@ -338,7 +339,6 @@ nano() {
             fi
         fi
 
-        # Check if .gitignore is requested
         if [[ "$arg" == ".gitignore" ]]; then
             if [ ! -f "$arg" ]; then
                 cat ~/.alfe.sh/git/faybian-scripts-org/default.gitignore > "$arg"
@@ -346,6 +346,10 @@ nano() {
         fi
     done
     command nano "$@"
+
+    # Post-execute hook after nano
+    echo "Nano session closed at $(date '+%Y-%m-%d %H:%M:%S')" >> "$HOME/.nano_history.log"
+
     for f in "${new_files[@]}"; do
         chmod +x "$f"
     done
