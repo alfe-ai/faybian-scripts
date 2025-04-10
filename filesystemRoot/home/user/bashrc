@@ -144,8 +144,8 @@ echo ""
 d() {
     echo "-------------"
     $TEXTC_DIRECTORY/textc.sh --color darkred --text "Filesystem:"
-    # Filter out snap mounts and show important filesystems
-    df -h | grep -v "/snap/" 
+    # Only show the / mount and mounts starting with /mnt
+    df -h | awk '$NF=="/" || $NF ~ /^\/mnt/'
     echo ""
 
     echo "-------------"
@@ -357,3 +357,4 @@ rmn() {
     fi
 }
 alias rnm='rmn'
+
