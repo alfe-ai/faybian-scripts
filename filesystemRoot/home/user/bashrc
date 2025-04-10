@@ -257,16 +257,31 @@ alias cdgit='cd ~/.alfe.sh/git'
 alias lsl='ls -lahtr --group-directories-first --color=auto'
 alias lsf='ls -lahtr --color=always | grep --color=always -v "^d"'
 
-# Log each command to individual JSON files
+# Enhanced command timestamp display function
+# Print timestamp before each command execution
+print_command_timestamp() {
+    # Don't print timestamp for certain commands
+    local cmd="${BASH_COMMAND}"
+    if [[ "$cmd" == "$PROMPT_COMMAND" || "$cmd" =~ ^(history|preexec_invoke_exec|update_window_title)$ ]]; then
+        return
+    fi
+    
+    # Print timestamp with green color
+    echo -e "\033[0;32m$(date '+%m/%d/%y %H:%M:%S')\033[0m"
+}
+
+# Log each command to individual JSON files - optimized version
 preexec_invoke_exec() {
     [ -n "$COMP_LINE" ] && return
-    [[ "$BASH_COMMAND" == "$PROMPT_COMMAND" || "$BASH_COMMAND" == "preexec"* ]] && return
+    local cmd="${BASH_COMMAND}"
+    [[ "$cmd" == "$PROMPT_COMMAND" || "$cmd" =~ ^(preexec_invoke_exec|update_window_title)$ ]] && return
+    
+    # Print command timestamp
+    print_command_timestamp
 
-    echo -e "\033[0;32m$(date '+%m/%d/%y %H:%M:%S')\033[0m"
-
-    local command="${BASH_COMMAND}"
-    if [[ "$command" == *$'\n'* ]]; then
-        command=$(echo "$command" | tr '\n' ';')
+    # Sanitize multiline commands
+    if [[ "$cmd" == *$'\n'* ]]; then
+        cmd=$(echo "$cmd" | tr '\n' ';')
     fi
 
     local timestamp=$(date +%s%3N)
@@ -279,18 +294,13 @@ preexec_invoke_exec() {
 
     local log_file="$log_dir/${timestamp}.json"
 
-    local escaped_command=$(printf '%s' "$command" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    # Escape special characters more efficiently
+    local escaped_cmd=$(printf '%s' "$cmd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
     local escaped_cwd=$(printf '%s' "$cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
 
-    cat > "$log_file" <<EOF
-{
-    "timestamp": "$timestamp",
-    "pid": "$pid",
-    "user": "$user",
-    "cwd": "$escaped_cwd",
-    "command": "$escaped_command"
-}
-EOF
+    # Write to log file
+    printf '{\n    "timestamp": "%s",\n    "pid": "%s",\n    "user": "%s",\n    "cwd": "%s",\n    "command": "%s"\n}\n' \
+           "$timestamp" "$pid" "$user" "$escaped_cwd" "$escaped_cmd" > "$log_file"
 }
 
 trap 'preexec_invoke_exec' DEBUG
