@@ -162,7 +162,7 @@ pd() {
     git remote -v
     echo ""
     echo "-------------"
-    $TEXTC_DIRECTORY{textc.sh --color darkred --text "Current Directory:"
+    $TEXTC_DIRECTORY/textc.sh --color darkred --text "Current Directory:"
     pwd
     echo "-------------"
 }
