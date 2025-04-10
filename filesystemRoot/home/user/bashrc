@@ -144,12 +144,6 @@ d() {
     RED='\033[31m'
     NC='\033[0m'
 
-    #if mount | grep -q "$TODO"; then
-    #    echo -e "$TODO mounted: ${GREEN}/mnt/$TODO${NC}"
-    #else
-    #    echo -e "$TODO not mounted: ${RED}not mounted${NC}"
-    #fi
-
     echo ""
     echo "-------------"
     $TEXTC_DIRECTORY/textc.sh --color darkred --text "Screens:"
@@ -174,7 +168,6 @@ pd() {
 }
 pd
 
-#$TODO :
 #export VIRTUAL_ENV_DISABLE_PROMPT=1
 #source ~/python_venv/bin/activate
 
@@ -182,7 +175,6 @@ pd
 git() {
     if [ "$1" == "fpush" ] || [ "$1" == "fp" ] || [ "$1" == "f" ]; then
         shift
-        #~/.alfe.sh/git/git_reset/git_fpush.sh "$@"
         ~/.fayra/Whimsical/git/faybian-git_reset/git_fpush.sh "$@"
     elif [ "$1" == "s" ] || [ "$1" == "status" ]; then
         shift
@@ -346,8 +338,18 @@ nano() {
         fi
     done
     command nano "$@"
+
+    # Post-execute hook after nano
+    echo "Nano session closed at $(date '+%Y-%m-%d %H:%M:%S')" >> "$HOME/.nano_history.log"
+
     for f in "${new_files[@]}"; do
         chmod +x "$f"
+    done
+
+    # Remove start/end markers if theyre first/last lines
+    for f in "$@"; do
+        [ -f "$f" ] || continue
+        sed -i -e '1{/^===== Start of file: /d}' -e '${/^===== End of file: /d}' "$f"
     done
 }
 
