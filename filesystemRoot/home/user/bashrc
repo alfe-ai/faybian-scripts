@@ -44,15 +44,16 @@ fi
 git_prompt_info() {
     if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         local color
+        local timestamp=$(git show -s --format=%cd --date=format-local:'%Y-%m-%d %H:%M' HEAD 2>/dev/null)
         if [ -z "$(git status --porcelain)" ] && git status | grep -q "Your branch is up to date with"; then
             # Clean working tree and up to date with remote
             color="\[\033[01;32m\]"  # Green
-            echo "${color}($(git rev-parse --short HEAD), clean)\[\033[00m\]"
+            echo "${color}($(git rev-parse --short HEAD), clean, $timestamp)\[\033[00m\]"
         else
             color="\[\033[01;33m\]"  # Orange
             # Count number of changes
             local num_changes=$(git status --porcelain | wc -l | tr -d ' ')
-            echo "${color}($(git rev-parse --short HEAD), ${num_changes} changes)\[\033[00m\]"
+            echo "${color}($(git rev-parse --short HEAD), ${num_changes} changes, $timestamp)\[\033[00m\]"
         fi
     fi
 }
