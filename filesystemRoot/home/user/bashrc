@@ -59,6 +59,7 @@ git_prompt_info() {
 }
 
 if [ "$color_prompt" = yes ]; then
+    # Timestamp in grey, non-bold
     PS1="\[\033[90m\]\$(date '+%m/%d/%y %H:%M:%S')\[\033[00m\] ${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
 else
     PS1="\$(date '+%m/%d/%y %H:%M:%S') ${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS$(git_prompt_info):\w\$ "
@@ -136,7 +137,7 @@ echo ""
 
 d() {
     echo "-------------"
-    $TEXTC_DIRECTORY/textc.sh --color darkred --text "Filesystem:"
+    $TEXTC_DIRECTORY.textc.sh --color darkred --text "Filesystem:"
     # Updated to include partition3 (/dev/nvme0n1p3)
     df -h | grep -E "$TODO"
     echo ""
@@ -223,7 +224,8 @@ update_window_title() {
     fi
     
     TITLE="$USER@$HOSTNAME:${SHORT_PWD}$"
-    PS1="${VIRTUAL_ENV_PROMPT}${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\$(date '+%m/%d/%y %H:%M:%S') \u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]${SHORT_PWD}\[\033[00m\]\$ "
+    # Timestamp set to grey in the updated PS1
+    PS1="${VIRTUAL_ENV_PROMPT}${debian_chroot:+($debian_chroot)}\[\033[90m\]\$(date '+%m/%d/%y %H:%M:%S')\[\033[00m\] \[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]${SHORT_PWD}\[\033[00m\]\$ "
     
     if [[ -n "$TITLE_OVERRIDE" ]]; then
         TITLE="$TITLE_OVERRIDE"
@@ -349,7 +351,7 @@ nano() {
         chmod +x "$f"
     done
 
-    # Remove start/end markers if theyre first/last lines
+    # Remove start/end markers if they’re the first/last lines
     for f in "$@"; do
         [ -f "$f" ] || continue
         sed -i -e '1{/^===== Start of file: /d}' -e '${/^===== End of file: /d}' "$f"
