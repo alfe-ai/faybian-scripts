@@ -379,3 +379,7 @@ rmn() {
     fi
 }
 alias rnm='rmn'
+
+
+alias c='clear'
+alias cl='clear'
