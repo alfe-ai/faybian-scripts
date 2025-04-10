@@ -2,20 +2,380 @@
 # File_Type: '.sh'
 # Squash_Source: 'c3c94ba38425135a53c45b7512332b37321a8eda'
 
-# [Previous file content unchanged until aliases section]
+# Use fastfetch if installed, else neofetch (if that is installed).
+if command -v fastfetch &>/dev/null; then
+    fastfetch --logo none
+elif command -v neofetch &>/dev/null; then
+    neofetch --ascii_distro "none"
+fi
 
-# Updated alias section
-alias c='clear'
-alias cl='clear'
+case $- in
+    *i*) ;;
+      *) return;;
+esac
 
-# [Rest of file content unchanged until echo "Custom Aliases" section]
+HOST_ALIAS=$(hostname)
 
+TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils"
+
+HISTCONTROL=ignoreboth
+shopt -s histappend
+HISTSIZE=1000
+HISTFILESIZE=2000
+shopt -s checkwinsize
+
+if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+    debian_chroot=$(cat /etc/debian_chroot)
+fi
+
+case "$TERM" in
+    xterm-color|*-256color) color_prompt=yes;;
+esac
+
+if [ -n "$force_color_prompt" ]; then
+    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+        color_prompt=yes
+    else
+        color_prompt=
+    fi
+fi
+
+# Function to get the Git prompt info
+git_prompt_info() {
+    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        local color
+        if [ -z "$(git status --porcelain)" ] && git status | grep -q "Your branch is up to date with"; then
+            # Clean working tree and up to date with remote
+            color="\[\033[01;32m\]"  # Green
+            echo "${color}($(git rev-parse --short HEAD), clean)\[\033[00m\]"
+        else
+            color="\[\033[01;33m\]"  # Orange
+            # Count number of changes
+            local num_changes=$(git status --porcelain | wc -l | tr -d ' ')
+            echo "${color}($(git rev-parse --short HEAD), ${num_changes} changes)\[\033[00m\]"
+        fi
+    fi
+}
+
+if [ "$color_prompt" = yes ]; then
+    PS1="${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+else
+    PS1="${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS$(git_prompt_info):\w\$ "
+fi
+unset color_prompt force_color_prompt
+
+case "$TERM" in
+    xterm*|rxvt*)
+        PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS: \w\a\]$PS1"
+        ;;
+    *)
+        ;;
+esac
+
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+    alias LS='ls --color=auto'
+fi
+
+if [ -f ~/.bash_aliases ]; then
+    . ~/.bash_aliases
+fi
+
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+  fi
+fi
+
+cd() {
+    local old_cwd="$PWD"
+    builtin cd "$@" && pwd && ls
+    local new_cwd="$PWD"
+
+    local timestamp=$(date +%s%3N)  # Milliseconds since epoch
+    local pid="$$"
+    local user="$USER"
+
+    local log_dir="$HOME/.alfe.sh/alsh/dir_history/$pid"
+    mkdir -p "$log_dir"
+
+    local log_file="$log_dir/${timestamp}.json"
+
+    # Escape special characters in old_cwd and new_cwd
+    local escaped_old_cwd=$(printf '%s' "$old_cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    local escaped_new_cwd=$(printf '%s' "$new_cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    local cd_command="cd $*"
+    local escaped_cd_command=$(printf '%s' "$cd_command" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+
+    # Write the JSON
+    cat > "$log_file" <<EOF
+{
+    "timestamp": "$timestamp",
+    "pid": "$pid",
+    "user": "$user",
+    "old_cwd": "$escaped_old_cwd",
+    "new_cwd": "$escaped_new_cwd",
+    "cd_command": "$escaped_cd_command"
+}
+EOF
+}
+alias CD='cd'
+
+# Updated alias to use nano directly
+alias n='nano'
+
+echo "-------------"
+$TEXTC_DIRECTORY/textc.sh --color darkred --text "Language Versions:"
+echo "Node.js version: $(node -v)"
+#echo "Python version: $(python --version)"
+echo ""
+
+d() {
+    echo "-------------"
+    $TEXTC_DIRECTORY/textc.sh --color darkred --text "Filesystem:"
+    # Updated to include partition3 (/dev/nvme0n1p3)
+    df -h | grep -E "$TODO"
+    echo ""
+
+    GREEN='\033[32m'
+    RED='\033[31m'
+    NC='\033[0m'
+
+    echo ""
+    echo "-------------"
+    $TEXTC_DIRECTORY/textc.sh --color darkred --text "Screens:"
+    screen -list
+    echo ""
+}
+d
+
+pd() {
+    echo "-------------"
+    $TEXTC_DIRECTORY/textc.sh --color darkred --text "Git Status:"
+    git status
+    echo ""
+    git log -n 3 --pretty=format:'%H %ai %an <%ae> %s' --abbrev-commit
+    echo ""
+    git remote -v
+    echo ""
+    echo "-------------"
+    $TEXTC_DIRECTORY/textc.sh --color darkred --text "Current Directory:"
+    pwd
+    echo "-------------"
+}
+pd
+
+#export VIRTUAL_ENV_DISABLE_PROMPT=1
+#source ~/python_venv/bin/activate
+
+# Define the git function and export it before calling exec_stage
+git() {
+    if [ "$1" == "fpush" ] || [ "$1" == "fp" ] || [ "$1" == "f" ]; then
+        shift
+        ~/.fayra/Whimsical/git/faybian-git_reset/git_fpush.sh "$@"
+    elif [ "$1" == "s" ] || [ "$1" == "status" ]; then
+        shift
+        sh -c "git status $*" | sed -e '/nothing to commit, working tree clean/ s/.*/\x1b[32m&\x1b[0m/'
+    else
+        command git "$@"
+    fi
+}
+export -f git
+
+alias gitf='git f'
+
+history() {
+    ~/.alfe.sh/alsh/history_reader.sh "$@"
+}
+export -f history
+
+dir_history() {
+    ~/.alfe.sh/alsh/dir_history.sh "$@"
+}
+export -f dir_history
+
+back() {
+    # Navigate to the previous directory using dir_history
+    local last_dir=$(~/.alfe.sh/alsh/dir_history.sh -n 2 | tail -n 1 | awk '{for(i=4;i<=NF;++i)printf "%s ",$i; print ""}' | sed 's/[[:space:]]*$//')
+    if [ -n "$last_dir" ] && [ -d "$last_dir" ]; then
+        cd "$last_dir"
+    else
+        echo "No previous directory found."
+    fi
+}
+alias cdp='back'
+alias cdb='back'
+alias b='back'
+
+update_window_title() {
+    local home="${HOME%/}"
+
+    if [[ "$PWD" == "$home" ]]; then
+        SHORT_PWD="~"
+    elif [[ "$PWD" == "$home/"* ]]; then
+        SHORT_PWD="~/${PWD#$home/}"
+    else
+        SHORT_PWD="$PWD"
+    fi
+    
+    TITLE="$USER@$HOSTNAME:${SHORT_PWD}$"
+    PS1="${VIRTUAL_ENV_PROMPT}${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]${SHORT_PWD}\[\033[00m\]\$ "
+    
+    if [[ -n "$TITLE_OVERRIDE" ]]; then
+        TITLE="$TITLE_OVERRIDE"
+    fi
+
+    echo -ne "\033]0;$TITLE\007"
+}
+
+set_title() {
+    TITLE_OVERRIDE="$*"
+    update_window_title
+}
+
+PROMPT_COMMAND="update_window_title"
+
+update_window_title
+
+alias cb='function _cb() { clear && bash; }; _cb'
+alias c='function _c() { clear; n; d; }; _c'
+alias cv='function _cv() { clear; n; gpt_print; }; _cv'
+alias cx='function _cx() { clear; n; gpt_print; run_gpt; }; _cx'
+
+alias cgit='cd ~/.alfe.sh/git'
+alias cdgit='cd ~/.alfe.sh/git'
+
+alias alsh='bash'
+
+HISTTIMEFORMAT="%F %T "
+
+alias lsl='ls -lahtr --group-directories-first --color=auto'
+alias lsf='ls -lahtr --color=always | grep --color=always -v "^d"'
+
+# Log each command to individual JSON files
+preexec_invoke_exec() {
+    [ -n "$COMP_LINE" ] && return
+    [[ "$BASH_COMMAND" == "$PROMPT_COMMAND" || "$BASH_COMMAND" == "preexec"* ]] && return
+
+    local command="${BASH_COMMAND}"
+    if [[ "$command" == *$'\n'* ]]; then
+        command=$(echo "$command" | tr '\n' ';')
+    fi
+
+    local timestamp=$(date +%s%3N)
+    local pid="$$"
+    local user="$USER"
+    local cwd="$PWD"
+
+    local log_dir="$HOME/.alfe.sh/alsh/history/$pid"
+    mkdir -p "$log_dir"
+
+    local log_file="$log_dir/${timestamp}.json"
+
+    local escaped_command=$(printf '%s' "$command" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    local escaped_cwd=$(printf '%s' "$cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+
+    cat > "$log_file" <<EOF
+{
+    "timestamp": "$timestamp",
+    "pid": "$pid",
+    "user": "$user",
+    "cwd": "$escaped_cwd",
+    "command": "$escaped_command"
+}
+EOF
+}
+
+trap 'preexec_invoke_exec' DEBUG
+
+alias b='back'
+
+echo "-------------"
+echo "Custom Aliases (organized):"
+
+echo "GIT Aliases:"
+echo "   gitf='git f'"
+
+echo ""
+echo "Filesystem Aliases:"
+echo "   CD='cd'"
+echo "   LS='ls --color=auto'"
+echo "   lsl='ls -lahtr --group-directories-first --color=auto'"
+echo "   lsf='ls -lahtr --color=always | grep --color=always -v \"^d\"'"
+echo "   cdb='back'"
+echo "   cdp='back'"
+echo "   cdgit='cd ~/.alfe.sh/git'"
+echo "   cgit='cd ~/.alfe.sh/git'"
+
+echo ""
 echo "Misc / Shell Aliases:"
-echo "   c='clear'"
-echo "   cl='clear'"
+echo "   alsh='bash'"
+echo "   b='back'"
+echo "   c='function _c() { clear; n; d; }; _c'"
 echo "   cb='function _cb() { clear && bash; }; _cb'"
 echo "   cv='function _cv() { clear; n; gpt_print; }; _cv'"
 echo "   cx='function _cx() { clear; n; gpt_print; run_gpt; }; _cx'"
 echo "   n='nano'"
 
-# [Remainder of file unchanged]
+nano() {
+    local new_files=()
+    for arg in "$@"; do
+        if [[ "$arg" == *.sh ]]; then
+            if [ ! -f "$arg" ]; then
+                echo "#!/bin/bash" > "$arg"
+                new_files+=("$arg")
+            fi
+        fi
+
+        # Check if .gitignore is requested
+        if [[ "$arg" == ".gitignore" ]]; then
+            if [ ! -f "$arg" ]; then
+                cat ~/.alfe.sh/git/faybian-scripts-org/default.gitignore > "$arg"
+            fi
+        fi
+    done
+    command nano "$@"
+
+    # Post-execute hook after nano
+    echo "Nano session closed at $(date '+%Y-%m-%d %H:%M:%S')" >> "$HOME/.nano_history.log"
+
+    for f in "${new_files[@]}"; do
+        chmod +x "$f"
+    done
+
+    # Remove start/end markers if theyre first/last lines
+    for f in "$@"; do
+        [ -f "$f" ] || continue
+        sed -i -e '1{/^===== Start of file: /d}' -e '${/^===== End of file: /d}' "$f"
+    done
+}
+
+alias bashup='~/.alfe.sh/git/faybian-scripts-org/utils/cp_git_to_bashrc.sh'
+alias bup='~/.alfe.sh/git/faybian-scripts-org/utils/cp_git_to_bashrc.sh'
+
+# Redshift function
+rs() {
+    redshift -x && redshift -O "$1"
+}
+export -f rs
+
+symlink() {
+    if [ "$#" -ne 2 ]; then
+        echo "Usage: symlink <target> <linkName>"
+        return 1
+    fi
+    ln -s "$1" "$2"
+}
+export -f symlink
+
+rmn() {
+    if [ "$#" -eq 0 ]; then
+        echo "Usage: rmn <filename>"
+    else
+        rm "$1" && nano "$1"
+    fi
+}
+alias rnm='rmn'
