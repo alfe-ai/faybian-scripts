@@ -59,9 +59,10 @@ git_prompt_info() {
 }
 
 if [ "$color_prompt" = yes ]; then
-    PS1="${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+    # Timestamp in grey, non-bold
+    PS1="\[\033[90m\]\$(date '+%m/%d/%y %H:%M:%S')\[\033[00m\] ${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
 else
-    PS1="${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS$(git_prompt_info):\w\$ "
+    PS1="\$(date '+%m/%d/%y %H:%M:%S') ${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS$(git_prompt_info):\w\$ "
 fi
 unset color_prompt force_color_prompt
 
@@ -223,7 +224,8 @@ update_window_title() {
     fi
     
     TITLE="$USER@$HOSTNAME:${SHORT_PWD}$"
-    PS1="${VIRTUAL_ENV_PROMPT}${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]${SHORT_PWD}\[\033[00m\]\$ "
+    # Timestamp set to grey in the updated PS1
+    PS1="${VIRTUAL_ENV_PROMPT}${debian_chroot:+($debian_chroot)}\[\033[90m\]\$(date '+%m/%d/%y %H:%M:%S')\[\033[00m\] \[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]${SHORT_PWD}\[\033[00m\]\$ "
     
     if [[ -n "$TITLE_OVERRIDE" ]]; then
         TITLE="$TITLE_OVERRIDE"
@@ -261,6 +263,8 @@ preexec_invoke_exec() {
     [ -n "$COMP_LINE" ] && return
     [[ "$BASH_COMMAND" == "$PROMPT_COMMAND" || "$BASH_COMMAND" == "preexec"* ]] && return
 
+    echo -e "\033[0;32m$(date '+%m/%d/%y %H:%M:%S')\033[0m"
+
     local command="${BASH_COMMAND}"
     if [[ "$command" == *$'\n'* ]]; then
         command=$(echo "$command" | tr '\n' ';')
@@ -294,32 +298,32 @@ trap 'preexec_invoke_exec' DEBUG
 
 alias b='back'
 
-echo "-------------"
-echo "Custom Aliases (organized):"
+#echo "-------------"
+#echo "Custom Aliases (organized):"
 
-echo "GIT Aliases:"
-echo "   gitf='git f'"
+#echo "GIT Aliases:"
+#echo "   gitf='git f'"
 
-echo ""
-echo "Filesystem Aliases:"
-echo "   CD='cd'"
-echo "   LS='ls --color=auto'"
-echo "   lsl='ls -lahtr --group-directories-first --color=auto'"
-echo "   lsf='ls -lahtr --color=always | grep --color=always -v \"^d\"'"
-echo "   cdb='back'"
-echo "   cdp='back'"
-echo "   cdgit='cd ~/.alfe.sh/git'"
-echo "   cgit='cd ~/.alfe.sh/git'"
+#echo ""
+#echo "Filesystem Aliases:"
+#echo "   CD='cd'"
+#echo "   LS='ls --color=auto'"
+#echo "   lsl='ls -lahtr --group-directories-first --color=auto'"
+#echo "   lsf='ls -lahtr --color=always | grep --color=always -v \"^d\"'"
+#echo "   cdb='back'"
+#echo "   cdp='back'"
+#echo "   cdgit='cd ~/.alfe.sh/git'"
+#echo "   cgit='cd ~/.alfe.sh/git'"
 
-echo ""
-echo "Misc / Shell Aliases:"
-echo "   alsh='bash'"
-echo "   b='back'"
-echo "   c='function _c() { clear; n; d; }; _c'"
-echo "   cb='function _cb() { clear && bash; }; _cb'"
-echo "   cv='function _cv() { clear; n; gpt_print; }; _cv'"
-echo "   cx='function _cx() { clear; n; gpt_print; run_gpt; }; _cx'"
-echo "   n='nano'"
+#echo ""
+#echo "Misc / Shell Aliases:"
+#echo "   alsh='bash'"
+#echo "   b='back'"
+#echo "   c='function _c() { clear; n; d; }; _c'"
+#echo "   cb='function _cb() { clear && bash; }; _cb'"
+#echo "   cv='function _cv() { clear; n; gpt_print; }; _cv'"
+#echo "   cx='function _cx() { clear; n; gpt_print; run_gpt; }; _cx'"
+#echo "   n='nano'"
 
 nano() {
     local new_files=()
@@ -347,7 +351,7 @@ nano() {
         chmod +x "$f"
     done
 
-    # Remove start/end markers if theyre first/last lines
+    # Remove start/end markers if they’re the first/last lines
     for f in "$@"; do
         [ -f "$f" ] || continue
         sed -i -e '1{/^===== Start of file: /d}' -e '${/^===== End of file: /d}' "$f"
