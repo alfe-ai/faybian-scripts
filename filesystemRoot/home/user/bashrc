@@ -144,8 +144,9 @@ echo ""
 d() {
     echo "-------------"
     $TEXTC_DIRECTORY/textc.sh --color darkred --text "Filesystem:"
+    echo "Filesystem      Size  Used Avail Use% Mounted on"
     # Only show the / mount and mounts starting with /mnt
-    df -h | awk '$NF=="/" || $NF ~ /^\/mnt/'
+    df -h | awk 'NR>1 && ($NF=="/" || $NF ~ /^\/mnt/)'
     echo ""
 
     echo "-------------"
