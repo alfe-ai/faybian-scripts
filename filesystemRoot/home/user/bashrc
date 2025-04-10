@@ -1,3 +1,4 @@
+#!/bin/bash
 # File_Rel_Path: 'filesystemRoot/home/user/bashrc'
 # File_Type: '.sh'
 # Squash_Source: 'c3c94ba38425135a53c45b7512332b37321a8eda'
@@ -14,14 +15,17 @@ case $- in
       *) return;;
 esac
 
+# Environment variables
 HOST_ALIAS=$(hostname)
-
 TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils"
-
 HISTCONTROL=ignoreboth
-shopt -s histappend
 HISTSIZE=1000
 HISTFILESIZE=2000
+HISTTIMEFORMAT="%F %T "
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+
+# Shell options
+shopt -s histappend
 shopt -s checkwinsize
 
 if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
@@ -40,21 +44,24 @@ if [ -n "$force_color_prompt" ]; then
     fi
 fi
 
-# Function to get the Git prompt info
+# Function to get the Git prompt info - more efficiently
 git_prompt_info() {
-    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-        local color
-        local timestamp=$(git show -s --format=%cd --date=format-local:'%m/%d/%y %H:%M' HEAD 2>/dev/null)
-        if [ -z "$(git status --porcelain)" ] && git status | grep -q "Your branch is up to date with"; then
-            # Clean working tree and up to date with remote
-            color="\[\033[01;32m\]"  # Green
-            echo "${color}($(git rev-parse --short HEAD), clean, $timestamp)\[\033[00m\]"
-        else
-            color="\[\033[01;33m\]"  # Orange
-            # Count number of changes
-            local num_changes=$(git status --porcelain | wc -l | tr -d ' ')
-            echo "${color}($(git rev-parse --short HEAD), ${num_changes} changes, $timestamp)\[\033[00m\]"
-        fi
+    if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        return
+    fi
+    
+    local color status_output timestamp hash
+    timestamp=$(git show -s --format=%cd --date=format-local:'%m/%d/%y %H:%M' HEAD 2>/dev/null)
+    hash=$(git rev-parse --short HEAD 2>/dev/null)
+    status_output=$(git status --porcelain 2>/dev/null)
+    
+    if [ -z "$status_output" ] && git status | grep -q "Your branch is up to date with"; then
+        color="\[\033[01;32m\]"  # Green
+        echo "${color}($hash, clean, $timestamp)\[\033[00m\]"
+    else
+        color="\[\033[01;33m\]"  # Orange
+        local num_changes=$(echo "$status_output" | wc -l | tr -d ' ')
+        echo "${color}($hash, ${num_changes} changes, $timestamp)\[\033[00m\]"
     fi
 }
 
@@ -77,7 +84,6 @@ esac
 if [ -x /usr/bin/dircolors ]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
-    alias LS='ls --color=auto'
 fi
 
 if [ -f ~/.bash_aliases ]; then
@@ -92,6 +98,7 @@ if ! shopt -oq posix; then
   fi
 fi
 
+# Enhanced cd command with logging
 cd() {
     local old_cwd="$PWD"
     builtin cd "$@" && pwd && ls
@@ -124,7 +131,6 @@ cd() {
 }
 EOF
 }
-alias CD='cd'
 
 # Updated alias to use nano directly
 alias n='nano'
@@ -132,21 +138,17 @@ alias n='nano'
 echo "-------------"
 $TEXTC_DIRECTORY/textc.sh --color darkred --text "Language Versions:"
 echo "Node.js version: $(node -v)"
-#echo "Python version: $(python --version)"
 echo ""
 
+# Improved filesystem display function
 d() {
     echo "-------------"
     $TEXTC_DIRECTORY/textc.sh --color darkred --text "Filesystem:"
-    # Updated to include partition3 (/dev/nvme0n1p3)
-    df -h | grep -E "$TODO"
+    echo "Filesystem      Size  Used Avail Use% Mounted on"
+    # Only show the / mount and mounts starting with /mnt
+    df -h | awk 'NR>1 && ($NF=="/" || $NF ~ /^\/mnt/)'
     echo ""
 
-    GREEN='\033[32m'
-    RED='\033[31m'
-    NC='\033[0m'
-
-    echo ""
     echo "-------------"
     $TEXTC_DIRECTORY/textc.sh --color darkred --text "Screens:"
     screen -list
@@ -154,6 +156,7 @@ d() {
 }
 d
 
+# Project directory info
 pd() {
     echo "-------------"
     $TEXTC_DIRECTORY/textc.sh --color darkred --text "Git Status:"
@@ -169,9 +172,6 @@ pd() {
     echo "-------------"
 }
 pd
-
-#export VIRTUAL_ENV_DISABLE_PROMPT=1
-#source ~/python_venv/bin/activate
 
 # Define the git function and export it before calling exec_stage
 git() {
@@ -199,6 +199,7 @@ dir_history() {
 }
 export -f dir_history
 
+# Navigation shortcuts
 back() {
     # Navigate to the previous directory using dir_history
     local last_dir=$(~/.alfe.sh/alsh/dir_history.sh -n 2 | tail -n 1 | awk '{for(i=4;i<=NF;++i)printf "%s ",$i; print ""}' | sed 's/[[:space:]]*$//')
@@ -212,6 +213,7 @@ alias cdp='back'
 alias cdb='back'
 alias b='back'
 
+# Window title management
 update_window_title() {
     local home="${HOME%/}"
 
@@ -243,18 +245,16 @@ PROMPT_COMMAND="update_window_title"
 
 update_window_title
 
+# Shell environment aliases
 alias cb='function _cb() { clear && bash; }; _cb'
-alias c='function _c() { clear; n; d; }; _c'
+alias c='clear'
+alias cl='clear'
 alias cv='function _cv() { clear; n; gpt_print; }; _cv'
 alias cx='function _cx() { clear; n; gpt_print; run_gpt; }; _cx'
 
+# Directory and filesystem shortcuts
 alias cgit='cd ~/.alfe.sh/git'
 alias cdgit='cd ~/.alfe.sh/git'
-
-alias alsh='bash'
-
-HISTTIMEFORMAT="%F %T "
-
 alias lsl='ls -lahtr --group-directories-first --color=auto'
 alias lsf='ls -lahtr --color=always | grep --color=always -v "^d"'
 
@@ -296,35 +296,7 @@ EOF
 
 trap 'preexec_invoke_exec' DEBUG
 
-alias b='back'
-
-#echo "-------------"
-#echo "Custom Aliases (organized):"
-
-#echo "GIT Aliases:"
-#echo "   gitf='git f'"
-
-#echo ""
-#echo "Filesystem Aliases:"
-#echo "   CD='cd'"
-#echo "   LS='ls --color=auto'"
-#echo "   lsl='ls -lahtr --group-directories-first --color=auto'"
-#echo "   lsf='ls -lahtr --color=always | grep --color=always -v \"^d\"'"
-#echo "   cdb='back'"
-#echo "   cdp='back'"
-#echo "   cdgit='cd ~/.alfe.sh/git'"
-#echo "   cgit='cd ~/.alfe.sh/git'"
-
-#echo ""
-#echo "Misc / Shell Aliases:"
-#echo "   alsh='bash'"
-#echo "   b='back'"
-#echo "   c='function _c() { clear; n; d; }; _c'"
-#echo "   cb='function _cb() { clear && bash; }; _cb'"
-#echo "   cv='function _cv() { clear; n; gpt_print; }; _cv'"
-#echo "   cx='function _cx() { clear; n; gpt_print; run_gpt; }; _cx'"
-#echo "   n='nano'"
-
+# Enhanced nano function
 nano() {
     local new_files=()
     for arg in "$@"; do
@@ -351,15 +323,17 @@ nano() {
         chmod +x "$f"
     done
 
-    # Remove start/end markers if they’re the first/last lines
+    # Remove start/end markers if they're the first/last lines
     for f in "$@"; do
         [ -f "$f" ] || continue
         sed -i -e '1{/^===== Start of file: /d}' -e '${/^===== End of file: /d}' "$f"
     done
 }
 
+# Utility functions and aliases
 alias bashup='~/.alfe.sh/git/faybian-scripts-org/utils/cp_git_to_bashrc.sh'
 alias bup='~/.alfe.sh/git/faybian-scripts-org/utils/cp_git_to_bashrc.sh'
+alias alsh='bash'
 
 # Redshift function
 rs() {
@@ -385,6 +359,3 @@ rmn() {
 }
 alias rnm='rmn'
 
-
-alias c='clear'
-alias cl='clear'
