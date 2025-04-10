@@ -146,7 +146,7 @@ d() {
 
     echo ""
     echo "-------------"
-    $TEXTC_DIRECTORY.textc.sh --color darkred --text "Screens:"
+    $TEXTC_DIRECTORY/textc.sh --color darkred --text "Screens:"
     screen -list
     echo ""
 }
@@ -330,6 +330,7 @@ nano() {
             fi
         fi
 
+        # Check if .gitignore is requested
         if [[ "$arg" == ".gitignore" ]]; then
             if [ ! -f "$arg" ]; then
                 cat ~/.alfe.sh/git/faybian-scripts-org/default.gitignore > "$arg"
@@ -338,6 +339,7 @@ nano() {
     done
     command nano "$@"
 
+    # Post-execute hook after nano
     echo "Nano session closed at $(date '+%Y-%m-%d %H:%M:%S')" >> "$HOME/.nano_history.log"
 
     for f in "${new_files[@]}"; do
@@ -379,4 +381,3 @@ rmn() {
     fi
 }
 alias rnm='rmn'
-
