@@ -346,12 +346,10 @@ nano() {
         chmod +x "$f"
     done
 
-    # Check for required delimiters in any edited files
+    # Remove start/end markers if theyre first/last lines
     for f in "$@"; do
         [ -f "$f" ] || continue
-        if ! grep -q '^===== Start of file: ' "$f" || ! grep -q '^===== End of file: ' "$f"; then
-            echo "Warning: $f is missing the required '=====' start/end markers."
-        fi
+        sed -i -e '1{/^===== Start of file: /d}' -e '${/^===== End of file: /d}' "$f"
     done
 }
 
