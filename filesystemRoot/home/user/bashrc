@@ -137,7 +137,7 @@ echo ""
 
 d() {
     echo "-------------"
-    $TEXTC_DIRECTORY.textc.sh --color darkred --text "Filesystem:"
+    $TEXTC_DIRECTORY/textc.sh --color darkred --text "Filesystem:"
     # Updated to include partition3 (/dev/nvme0n1p3)
     df -h | grep -E "$TODO"
     echo ""
