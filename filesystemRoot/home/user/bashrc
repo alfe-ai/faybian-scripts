@@ -263,8 +263,6 @@ preexec_invoke_exec() {
     [ -n "$COMP_LINE" ] && return
     [[ "$BASH_COMMAND" == "$PROMPT_COMMAND" || "$BASH_COMMAND" == "preexec"* ]] && return
 
-    echo -e "\033[0;32m$(date '+%m/%d/%y %H:%M:%S')\033[0m"
-
     local command="${BASH_COMMAND}"
     if [[ "$command" == *$'\n'* ]]; then
         command=$(echo "$command" | tr '\n' ';')
