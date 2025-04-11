@@ -5,11 +5,23 @@ GPG_FINGERPRINT="DBA36B5181D0C816F630E889D980A17457F6FB06"
 KEYRING_PATH="/usr/share/keyrings/signal-desktop-keyring.gpg"
 TMP_KEY="/tmp/signal_key.asc"
 
+verify_fingerprint() {
+    local key_file="$1"
+    local expected_fpr="$2"
+    local actual_fpr
+
+    actual_fpr=$(gpg --show-keys --with-colons "$key_file" | grep '^fpr:' | head -n1 | cut -d: -f10 | tr '[:upper:]' '[:lower:]')
+    if [ "$actual_fpr" != "$expected_fpr" ]; then
+        return 1
+    fi
+    return 0
+}
+
+EXPECTED_FPR=$(echo "$GPG_FINGERPRINT" | tr '[:upper:]' '[:lower:]')
+
 if [ -f "$KEYRING_PATH" ]; then
     echo "Verifying existing Signal Desktop key fingerprint..."
-    STORED_FPR=$(gpg --show-keys --with-colons "$KEYRING_PATH" | grep '^fpr:' | head -n1 | cut -d: -f10 | tr '[:upper:]' '[:lower:]')
-    EXPECTED_FPR=$(echo "$GPG_FINGERPRINT" | tr '[:upper:]' '[:lower:]')
-    if [ "$STORED_FPR" != "$EXPECTED_FPR" ]; then
+    if ! verify_fingerprint "$KEYRING_PATH" "$EXPECTED_FPR"; then
         echo "Key fingerprint mismatch; re-downloading..."
         sudo rm -f "$KEYRING_PATH"
     else
@@ -24,9 +36,8 @@ if [ ! -f "$KEYRING_PATH" ]; then
     curl -fsSL https://updates.signal.org/desktop/apt/keys.asc -o "$TMP_KEY"
 
     echo "Verifying Signal Desktop key fingerprint..."
-    DOWNLOADED_FPR=$(gpg --show-keys --with-colons "$TMP_KEY" | grep '^fpr:' | head -n1 | cut -d: -f10 | tr '[:upper:]' '[:lower:]')
-    EXPECTED_FPR=$(echo "$GPG_FINGERPRINT" | tr '[:upper:]' '[:lower:]')
-    if [ "$DOWNLOADED_FPR" != "$EXPECTED_FPR" ]; then
+    if ! verify_fingerprint "$TMP_KEY" "$EXPECTED_FPR"; then
+        DOWNLOADED_FPR=$(gpg --show-keys --with-colons "$TMP_KEY" | grep '^fpr:' | head -n1 | cut -d: -f10 | tr '[:upper:]' '[:lower:]')
         echo "Error: Expected fingerprint $GPG_FINGERPRINT but got $DOWNLOADED_FPR"
         rm -f "$TMP_KEY"
         exit 1
