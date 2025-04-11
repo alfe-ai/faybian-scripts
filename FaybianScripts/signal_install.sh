@@ -49,10 +49,11 @@ if [ ! -f "$KEYRING_PATH" ]; then
 fi
 
 echo "Adding Signal Desktop repository..."
-echo "deb [arch=amd64 signed-by=$KEYRING_PATH] https://updates.signal.org/desktop/apt stable main" | sudo tee /etc/apt/sources.list.d/signal-desktop.list
+echo "deb [arch=amd64 signed-by=$KEYRING_PATH] https://updates.signal.org/desktop/apt release main" | sudo tee /etc/apt/sources.list.d/signal-desktop.list
 
 echo "Updating package list..."
 sudo apt update
 
 echo "Installing Signal Desktop..."
 sudo apt install signal-desktop
+
