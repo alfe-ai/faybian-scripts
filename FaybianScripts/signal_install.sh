@@ -12,11 +12,11 @@ sudo apt update
 
 # Install Signal Desktop
 echo "Installing Signal Desktop..."
-sudo apt install -y signal-desktop
+sudo apt install signal-desktop #-y
 
 # Fix dependencies
-echo "Fixing dependencies..."
-sudo apt install -f
+#echo "Fixing dependencies..."
+#sudo apt install -f
 
 # Launch Signal Desktop (optional)
 #echo "Starting Signal Desktop..."
