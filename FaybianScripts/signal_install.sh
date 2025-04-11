@@ -5,8 +5,20 @@ GPG_FINGERPRINT="DBA36B5181D0C816F630E889D980A17457F6FB06"
 KEYRING_PATH="/usr/share/keyrings/signal-desktop-keyring.gpg"
 TMP_KEY="/tmp/signal_key.asc"
 
+if [ -f "$KEYRING_PATH" ]; then
+    echo "Verifying existing Signal Desktop key fingerprint..."
+    STORED_FPR=$(gpg --show-keys --with-colons "$KEYRING_PATH" | grep '^fpr:' | head -n1 | cut -d: -f10 | tr '[:upper:]' '[:lower:]')
+    EXPECTED_FPR=$(echo "$GPG_FINGERPRINT" | tr '[:upper:]' '[:lower:]')
+    if [ "$STORED_FPR" != "$EXPECTED_FPR" ]; then
+        echo "Key fingerprint mismatch; re-downloading..."
+        sudo rm -f "$KEYRING_PATH"
+    else
+        echo "Existing key fingerprint verified successfully."
+    fi
+fi
+
 if [ ! -f "$KEYRING_PATH" ]; then
-    echo "Signal Desktop key not found, fetching and adding..."
+    echo "Signal Desktop key not found or removed, fetching and adding..."
     sudo mkdir -p /usr/share/keyrings
 
     curl -fsSL https://updates.signal.org/desktop/apt/keys.asc -o "$TMP_KEY"
@@ -23,13 +35,7 @@ if [ ! -f "$KEYRING_PATH" ]; then
 
     sudo gpg --dearmor < "$TMP_KEY" | sudo tee "$KEYRING_PATH" > /dev/null
     rm -f "$TMP_KEY"
-else
-    echo "Signal Desktop key already exists, skipping download."
 fi
-
-# TODO: For Alfe:
-# Update the code so that the fingerprint check is here,
-# We want to check the fingerprint of /usr/share/keyrings/...
 
 echo "Adding Signal Desktop repository..."
 echo "deb [arch=amd64 signed-by=$KEYRING_PATH] https://updates.signal.org/desktop/apt stable main" | sudo tee /etc/apt/sources.list.d/signal-desktop.list
@@ -38,4 +44,4 @@ echo "Updating package list..."
 sudo apt update
 
 echo "Installing Signal Desktop..."
-sudo apt install signal-desktop #-y
+sudo apt install signal-desktop
