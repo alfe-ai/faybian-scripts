@@ -6,6 +6,13 @@ sudo tee /etc/apt/sources.list.d/signal-desktop.list << EOL
 deb [arch=amd64] https://updates.signal.org/desktop/apt xenial main
 EOL
 
+# Retrieve GPG key for Signal Desktop repository
+GPG_FINGERPRINT="DBA36B5181D0C816F630E889D980A17457F6FB06"
+RECV_CMD="sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys $GPG_FINGERPRINT"
+echo "Retrieving GPG key with fingerprint $GPG_FINGERPRINT"
+echo "Executing command: $RECV_CMD"
+$RECV_CMD
+
 # Update package list
 echo "Updating package list..."
 sudo apt update
@@ -21,4 +28,3 @@ sudo apt install signal-desktop #-y
 # Launch Signal Desktop (optional)
 #echo "Starting Signal Desktop..."
 #signal-desktop &
-
