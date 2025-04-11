@@ -50,6 +50,7 @@ git_prompt_info() {
         return
     fi
     
+    local branch=$(git symbolic-ref --short HEAD 2>/dev/null)
     local color status_output timestamp hash
     timestamp=$(git show -s --format=%cd --date=format-local:'%m/%d/%y %H:%M' HEAD 2>/dev/null)
     hash=$(git rev-parse --short HEAD 2>/dev/null)
@@ -57,11 +58,11 @@ git_prompt_info() {
     
     if [ -z "$status_output" ] && git status | grep -q "Your branch is up to date with"; then
         color="\[\033[01;32m\]"  # Green
-        echo "${color}($hash, clean, $timestamp)\[\033[00m\]"
+        echo "${color}($hash, $branch, clean, $timestamp)\[\033[00m\]"
     else
         color="\[\033[01;33m\]"  # Orange
         local num_changes=$(echo "$status_output" | wc -l | tr -d ' ')
-        echo "${color}($hash, ${num_changes} changes, $timestamp)\[\033[00m\]"
+        echo "${color}($hash, $branch, ${num_changes} changes, $timestamp)\[\033[00m\]"
     fi
 }
 
