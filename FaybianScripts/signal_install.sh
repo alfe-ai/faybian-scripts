@@ -27,6 +27,10 @@ else
     echo "Signal Desktop key already exists, skipping download."
 fi
 
+# TODO: For Alfe:
+# Update the code so that the fingerprint check is here,
+# We want to check the fingerprint of /usr/share/keyrings/...
+
 echo "Adding Signal Desktop repository..."
 echo "deb [arch=amd64 signed-by=$KEYRING_PATH] https://updates.signal.org/desktop/apt stable main" | sudo tee /etc/apt/sources.list.d/signal-desktop.list
 
