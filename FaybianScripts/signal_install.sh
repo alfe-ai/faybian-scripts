@@ -34,4 +34,4 @@ echo "Updating package list..."
 sudo apt update
 
 echo "Installing Signal Desktop..."
-sudo apt install signal-desktop
+sudo apt install signal-desktop #-y
