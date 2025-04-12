@@ -49,13 +49,13 @@ git_prompt_info() {
     if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         return
     fi
-    
+
     local branch=$(git symbolic-ref --short HEAD 2>/dev/null)
     local color status_output timestamp hash
     timestamp=$(git show -s --format=%cd --date=format-local:'%m/%d/%y %H:%M' HEAD 2>/dev/null)
     hash=$(git rev-parse --short HEAD 2>/dev/null)
     status_output=$(git status --porcelain 2>/dev/null)
-    
+
     if [ -z "$status_output" ] && git status | grep -q "Your branch is up to date with"; then
         color="\[\033[01;32m\]"  # Green
         echo "${color}($hash, $branch, clean, $timestamp)\[\033[00m\]"
@@ -67,10 +67,9 @@ git_prompt_info() {
 }
 
 if [ "$color_prompt" = yes ]; then
-    # Timestamp in grey, non-bold
-    PS1="\[\033[90m\]\$(date '+%m/%d/%y %H:%M:%S')\[\033[00m\] ${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+    PS1="\[\033[90m\]\$(date '+%m/%d/%y %H:%M:%S')\[\033[00m\] ${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@$HOST_ALIAS\$(git_prompt_info)\[\033[00m\]\n:\[\033[01;34m\]\w\[\033[00m\]\$ "
 else
-    PS1="\$(date '+%m/%d/%y %H:%M:%S') ${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS$(git_prompt_info):\w\$ "
+    PS1="\$(date '+%m/%d/%y %H:%M:%S') ${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS\$(git_prompt_info)\n:\w\$ "
 fi
 unset color_prompt force_color_prompt
 
@@ -225,11 +224,11 @@ update_window_title() {
     else
         SHORT_PWD="$PWD"
     fi
-    
+
     TITLE="$USER@$HOSTNAME:${SHORT_PWD}$"
     # Timestamp set to grey in the updated PS1
-    PS1="${VIRTUAL_ENV_PROMPT}${debian_chroot:+($debian_chroot)}\[\033[90m\]\$(date '+%m/%d/%y %H:%M:%S')\[\033[00m\] \[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]${SHORT_PWD}\[\033[00m\]\$ "
-    
+    PS1="${VIRTUAL_ENV_PROMPT}${debian_chroot:+($debian_chroot)}\[\033[90m\]\$(date '+%m/%d/%y %H:%M:%S')\[\033[00m\] \[\033[01;32m\]\u@$HOST_ALIAS\$(git_prompt_info)\[\033[00m\]\n:\[\033[01;34m\]${SHORT_PWD}\[\033[00m\]\$ "
+
     if [[ -n "$TITLE_OVERRIDE" ]]; then
         TITLE="$TITLE_OVERRIDE"
     fi
@@ -361,4 +360,3 @@ rmn() {
     fi
 }
 alias rnm='rmn'
-
