@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=SmartGit
+Comment=Integrated Development Environment for PHP
+Exec=/home/syl/run_smartgit.sh
+Icon=/home/syl/phpstorm-icon-512x506-d6yogswx.png
+Terminal=false
+Categories=Development;IDE;
+StartupWMClass=jetbrains-phpstorm
