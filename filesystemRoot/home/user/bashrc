@@ -2,15 +2,18 @@
 # File_Rel_Path: 'filesystemRoot/home/user/bashrc'
 # File_Type: '.sh'
 # Squash_Source: 'c3c94ba38425135a53c45b7512332b37321a8eda'
-# Version: 'beta-v0.13'
+# Version: 'beta-v0.13.1'
 
 TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils" # todo symlink .alfe to .alfe.sh or something
+
+$TEXTC_DIRECTORY/textc.sh --color darkred --text "ALSH Version:"
+echo "beta-v0.13.1"
+echo ""
+echo "----------"
 
 # Use fastfetch if installed, else neofetch (if that is installed).
 if command -v fastfetch &>/dev/null; then
     fastfetch --logo none
-    $TEXTC_DIRECTORY/textc.sh --color darkred --text "ALSH Version: beta-v0.13"
-    #echo "alsh beta-v0.13"
 elif command -v neofetch &>/dev/null; then
     neofetch --ascii_distro "none"
 fi
