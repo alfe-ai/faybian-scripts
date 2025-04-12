@@ -1,358 +1,374 @@
-#!/bin/bash  
-# This is a fully updated .bashrc file with correct ANSI escape sequences.  
+#!/bin/bash
+# This is a fully updated .bashrc file with correct ANSI escape sequences.
 
-# Use fastfetch if installed, else neofetch (if that is installed).  
-if command -v fastfetch &>/dev/null; then  
-    fastfetch --logo none  
-elif command -v neofetch &>/dev/null; then  
-    neofetch --ascii_distro "none"  
-fi  
+# Use fastfetch if installed, else neofetch.
+if command -v fastfetch &>/dev/null; then
+    fastfetch --logo none
+elif command -v neofetch &>/dev/null; then
+    neofetch --ascii_distro "none"
+fi
 
-case $- in  
-    *i*) ;;  
-      *) return;;  
-esac  
+case $- in
+    *i*) ;;
+    *) return;;
+esac
 
-# Environment variables  
-HOST_ALIAS=$(hostname)  
-TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils"  
-HISTCONTROL=ignoreboth  
-HISTSIZE=1000  
-HISTFILESIZE=2000  
-HISTTIMEFORMAT="%F %T "  
-export VIRTUAL_ENV_DISABLE_PROMPT=1  
+# Environment variables
+HOST_ALIAS=$(hostname)
+TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils"
+HISTCONTROL=ignoreboth
+HISTSIZE=1000
+HISTFILESIZE=2000
+HISTTIMEFORMAT="%F %T "
+export VIRTUAL_ENV_DISABLE_PROMPT=1
 
-# Shell options  
-shopt -s histappend  
-shopt -s checkwinsize  
+# Shell options
+shopt -s histappend
+shopt -s checkwinsize
 
-if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then  
-    debian_chroot=$(cat /etc/debian_chroot)  
-fi  
+if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+    debian_chroot=$(cat /etc/debian_chroot)
+fi
 
-case "$TERM" in  
-    xterm-color|*-256color) color_prompt=yes;;  
-esac  
+case "$TERM" in
+    xterm-color|*-256color) color_prompt=yes;;
+esac
 
-if [ -n "$force_color_prompt" ]; then  
-    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then  
-        color_prompt=yes  
-    else  
-        color_prompt=  
-    fi  
-fi  
+if [ -n "$force_color_prompt" ]; then
+    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+        color_prompt=yes
+    else
+        color_prompt=
+    fi
+fi
 
-# Get Git prompt info, encloses non-printing chars with \[ \].  
-git_prompt_info() {  
-    if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then  
-        return  
-    fi  
+# Git prompt info
+git_prompt_info() {
+    if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        return
+    fi
 
-    local branch=$(git symbolic-ref --short HEAD 2>/dev/null)  
-    local color status_output timestamp hash  
-    timestamp=$(git show -s --format=%cd --date=format-local:'%m/%d/%y %H:%M' HEAD 2>/dev/null)  
-    hash=$(git rev-parse --short HEAD 2>/dev/null)  
-    status_output=$(git status --porcelain 2>/dev/null)  
+    local branch
+    local color
+    local status_output
+    local timestamp
+    local hash
 
-    if [ -z "$status_output" ] && git status | grep -q "Your branch is up to date with"; then  
-        # Clean  
-        color=$'\[\033[01;32m\]'  # Bold green  
-        echo -n "${color}($hash, $branch, clean, $timestamp)$'\[\033[00m\]'"  
-    else  
-        # Changes exist  
-        color=$'\[\033[01;33m\]'  # Bold yellow  
-        local num_changes=$(echo "$status_output" | wc -l | tr -d ' ')  
-        echo -n "${color}($hash, $branch, ${num_changes} changes, $timestamp)$'\[\033[00m\]'"  
-    fi  
-}  
+    branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+    timestamp=$(git show -s --format=%cd --date=format-local:'%m/%d/%y %H:%M' HEAD 2>/dev/null)
+    hash=$(git rev-parse --short HEAD 2>/dev/null)
+    status_output=$(git status --porcelain 2>/dev/null)
 
-# Set PS1 with properly encoded ANSI escapes  
-if [ "$color_prompt" = yes ]; then  
-    PS1=$'\[\033[90m\]$(date \'+%m/%d/%y %H:%M:%S\')\[\033[00m\] '"${debian_chroot:+($debian_chroot)}"$'\[\033[01;32m\]\u@'$HOST_ALIAS'$(git_prompt_info)'$'\[\033[00m\]\n:'$'\[\033[01;34m\]\w\[\033[00m\]\$ '  
-else  
-    PS1="$(date '+%m/%d/%y %H:%M:%S') ${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS\$(git_prompt_info)\n:\w\$ "  
-fi  
+    if [ -z "$status_output" ] && git status | grep -q "Your branch is up to date with"; then
+        color=$'\[\033[01;32m\]'
+        echo -n "${color}($hash, $branch, clean, $timestamp)$'\[\033[00m\]'"
+    else
+        color=$'\[\033[01;33m\]'
+        local num_changes
+        num_changes=$(echo "$status_output" | wc -l | tr -d ' ')
+        echo -n "${color}($hash, $branch, ${num_changes} changes, $timestamp)$'\[\033[00m\]'"
+    fi
+}
 
-unset color_prompt force_color_prompt  
+# Set PS1 with properly encoded ANSI escapes
+if [ "$color_prompt" = yes ]; then
+    PS1=$'\[\033[90m\]'"$(date '+%m/%d/%y %H:%M:%S')"\
+$'\[\033[00m\] '"${debian_chroot:+($debian_chroot)}"$'$\[\033[01;32m\]\u@'$HOST_ALIAS'$(git_prompt_info)'\
+$'\[\033[00m\]\n:\[\033[01;34m\]\w\[\033[00m\]\$ '
+else
+    PS1="$(date '+%m/%d/%y %H:%M:%S') ${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS\$(git_prompt_info)\n:\w\$ "
+fi
 
-case "$TERM" in  
-    xterm*|rxvt*)  
-        PS1=$'\[\e]0;'"${debian_chroot:+($debian_chroot)}"'\u@'$HOST_ALIAS': \w\a\]'"$PS1"  
-        ;;  
-    *)  
-        ;;  
-esac  
+unset color_prompt force_color_prompt
 
-# If dircolors is available, set color for ls  
-if [ -x /usr/bin/dircolors ]; then  
-    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"  
-    alias ls='ls --color=auto'  
-fi  
+case "$TERM" in
+    xterm*|rxvt*)
+        PS1=$'\[\e]0;'${debian_chroot:+($debian_chroot)}$'\u@'$HOST_ALIAS$': \w\a\]'$PS1
+        ;;
+    *)
+        ;;
+esac
 
-# Load aliases if present  
-[ -f ~/.bash_aliases ] && . ~/.bash_aliases  
+# If dircolors is available, set color for ls
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+fi
 
-# Load bash-completion if not in POSIX mode and if available  
-if ! shopt -oq posix; then  
-  if [ -f /usr/share/bash-completion/bash_completion ]; then  
-    . /usr/share/bash-completion/bash_completion  
-  elif [ -f /etc/bash_completion ]; then  
-    . /etc/bash_completion  
-  fi  
-fi  
+# Load user aliases if present
+[ -f ~/.bash_aliases ] && . ~/.bash_aliases
 
-# Enhanced cd command with logging  
-cd() {  
-    local old_cwd="$PWD"  
-    builtin cd "$@" && pwd && ls  
-    local new_cwd="$PWD"  
+# Load bash-completion if not in POSIX mode and if available
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+  fi
+fi
 
-    local timestamp=$(date +%s%3N)  
-    local pid="$$"  
-    local user="$USER"  
+# Enhanced cd command with logging
+cd() {
+    local old_cwd="$PWD"
+    builtin cd "$@" && pwd && ls
+    local new_cwd="$PWD"
 
-    local log_dir="$HOME/.alfe.sh/alsh/dir_history/$pid"  
-    mkdir -p "$log_dir"  
+    local timestamp=$(date +%s%3N)
+    local pid="$$"
+    local user="$USER"
 
-    local log_file="$log_dir/${timestamp}.json"  
+    local log_dir="$HOME/.alfe.sh/alsh/dir_history/$pid"
+    mkdir -p "$log_dir"
 
-    local escaped_old_cwd=$(printf '%s' "$old_cwd" | sed -e 's/\\/\\\\/g' -e 's/\"/\\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')  
-    local escaped_new_cwd=$(printf '%s' "$new_cwd" | sed -e 's/\\/\\\\/g' -e 's/\"/\\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')  
-    local cd_command="cd $*"  
-    local escaped_cd_command=$(printf '%s' "$cd_command" | sed -e 's/\\/\\\\/g' -e 's/\"/\\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')  
+    local log_file="$log_dir/${timestamp}.json"
 
-    cat > "$log_file" <<EOF  
-{  
-    "timestamp": "$timestamp",  
-    "pid": "$pid",  
-    "user": "$user",  
-    "old_cwd": "$escaped_old_cwd",  
-    "new_cwd": "$escaped_new_cwd",  
-    "cd_command": "$escaped_cd_command"  
-}  
-EOF  
-}  
+    local escaped_old_cwd
+    local escaped_new_cwd
+    local escaped_cd_command
 
-# Updated alias to use nano directly  
-alias n='nano'  
+    escaped_old_cwd=$(printf '%s' "$old_cwd" | sed -e 's/\\/\\\\/g' -e 's/\"/\\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    escaped_new_cwd=$(printf '%s' "$new_cwd" | sed -e 's/\\/\\\\/g' -e 's/\"/\\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    escaped_cd_command=$(printf '%s' "cd $*" | sed -e 's/\\/\\\\/g' -e 's/\"/\\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
 
-echo "-------------"  
-"$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Language Versions:"  
-echo "Node.js version: $(node -v)"  
-echo ""  
+    cat > "$log_file" <<EOF
+{
+    "timestamp": "$timestamp",
+    "pid": "$pid",
+    "user": "$user",
+    "old_cwd": "$escaped_old_cwd",
+    "new_cwd": "$escaped_new_cwd",
+    "cd_command": "$escaped_cd_command"
+}
+EOF
+}
 
-# Improved filesystem display function  
-d() {  
-    echo "-------------"  
-    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Filesystem:"  
-    echo "Filesystem      Size  Used Avail Use% Mounted on"  
-    df -h | awk 'NR>1 && ($NF=="/" || $NF ~ /^\/mnt/)'  
-    echo ""  
+# Updated alias to use nano directly
+alias n='nano'
 
-    echo "-------------"  
-    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Screens:"  
-    screen -list  
-    echo ""  
-}  
-d  
+echo "-------------"
+"$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Language Versions:"
+echo "Node.js version: $(node -v)"
+echo ""
 
-pd() {  
-    echo "-------------"  
-    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Git Status:"  
-    git status  
-    echo ""  
-    git log -n 3 --pretty=format:'%H %ai %an <%ae> %s' --abbrev-commit  
-    echo ""  
-    git remote -v  
-    echo ""  
-    echo "-------------"  
-    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Current Directory:"  
-    pwd  
-    echo "-------------"  
-}  
-pd  
+# Improved filesystem display function
+d() {
+    echo "-------------"
+    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Filesystem:"
+    echo "Filesystem      Size  Used Avail Use% Mounted on"
+    df -h | awk 'NR>1 && ($NF=="/" || $NF ~ /^\/mnt/)'
+    echo ""
 
-# Define the git function and export it before calling exec_stage  
-git() {  
-    if [ "$1" == "fpush" ] || [ "$1" == "fp" ] || [ "$1" == "f" ]; then  
-        shift  
-        ~/.fayra/Whimsical/git/faybian-git_reset/git_fpush.sh "$@"  
-    elif [ "$1" == "s" ] || [ "$1" == "status" ]; then  
-        shift  
-        sh -c "git status $*" | sed -e '/nothing to commit, working tree clean/ s/.*/\\x1b[32m&\\x1b[0m/'  
-    else  
-        command git "$@"  
-    fi  
-}  
-export -f git  
+    echo "-------------"
+    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Screens:"
+    screen -list
+    echo ""
+}
+d
 
-alias gitf='git f'  
+pd() {
+    echo "-------------"
+    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Git Status:"
+    git status
+    echo ""
+    git log -n 3 --pretty=format:'%H %ai %an <%ae> %s' --abbrev-commit
+    echo ""
+    git remote -v
+    echo ""
+    echo "-------------"
+    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Current Directory:"
+    pwd
+    echo "-------------"
+}
+pd
 
-# Custom history command  
-history() {  
-    ~/.alfe.sh/alsh/history_reader.sh "$@"  
-}  
-export -f history  
+# Git function
+git() {
+    if [ "$1" == "fpush" ] || [ "$1" == "fp" ] || [ "$1" == "f" ]; then
+        shift
+        ~/.fayra/Whimsical/git/faybian-git_reset/git_fpush.sh "$@"
+    elif [ "$1" == "s" ] || [ "$1" == "status" ]; then
+        shift
+        sh -c "git status $*" | sed -e '/nothing to commit, working tree clean/ s/.*/\\x1b[32m&\\x1b[0m/'
+    else
+        command git "$@"
+    fi
+}
+export -f git
+alias gitf='git f'
 
-dir_history() {  
-    ~/.alfe.sh/alsh/dir_history.sh "$@"  
-}  
-export -f dir_history  
+# Custom history command
+history() {
+    ~/.alfe.sh/alsh/history_reader.sh "$@"
+}
+export -f history
 
-# Navigation shortcuts  
-back() {  
-    local last_dir=$(~/.alfe.sh/alsh/dir_history.sh -n 2 | tail -n 1 | awk '{for(i=4;i<=NF;++i)printf "%s ",$i; print ""}' | sed 's/[[:space:]]*$//')  
-    if [ -n "$last_dir" ] && [ -d "$last_dir" ]; then  
-        cd "$last_dir"  
-    else  
-        echo "No previous directory found."  
-    fi  
-}  
-alias cdp='back'  
-alias cdb='back'  
-alias b='back'  
+dir_history() {
+    ~/.alfe.sh/alsh/dir_history.sh "$@"
+}
+export -f dir_history
 
-# Window title management  
-update_window_title() {  
-    local home="${HOME%/}"  
-    if [[ "$PWD" == "$home" ]]; then  
-        SHORT_PWD="~"  
-    elif [[ "$PWD" == "$home/"* ]]; then  
-        SHORT_PWD="~/${PWD#$home/}"  
-    else  
-        SHORT_PWD="$PWD"  
-    fi  
+# Navigation shortcuts
+back() {
+    local last_dir
+    last_dir=$(~/.alfe.sh/alsh/dir_history.sh -n 2 | tail -n 1 | awk '{for(i=4;i<=NF;++i)printf "%s ",$i; print ""}' | sed 's/[[:space:]]*$//')
+    if [ -n "$last_dir" ] && [ -d "$last_dir" ]; then
+        cd "$last_dir"
+    else
+        echo "No previous directory found."
+    fi
+}
+alias cdp='back'
+alias cdb='back'
+alias b='back'
 
-    TITLE="$USER@$HOSTNAME:${SHORT_PWD}\$"  
-    PS1=$'\[\033[90m\]'"$(date '+%m/%d/%y %H:%M:%S')"'\[\033[00m\] '$'\[\033[01;32m\]'"\\u@$HOST_ALIAS"'\[\033[00m\]'\n':'$'\[\033[01;34m\]'${SHORT_PWD}$'\[\033[00m\]\$ '  
+# Window title management
+update_window_title() {
+    local home="${HOME%/}"
+    if [[ "$PWD" == "$home" ]]; then
+        SHORT_PWD="~"
+    elif [[ "$PWD" == "$home/"* ]]; then
+        SHORT_PWD="~/${PWD#$home/}"
+    else
+        SHORT_PWD="$PWD"
+    fi
 
-    if [[ -n "$TITLE_OVERRIDE" ]]; then  
-        TITLE="$TITLE_OVERRIDE"  
-    fi  
+    TITLE="$USER@$HOSTNAME:${SHORT_PWD}\\$"
+    PS1=$'\\[\\033[90m\\]'$(date '+%m/%d/%y %H:%M:%S')$'\\[\\033[00m\\] '\\
+$'\\[\\033[01;32m\\]\\u@'$HOST_ALIAS$'\\[\\033[00m\\]\\n:'$'\\[\\033[01;34m\\]'${SHORT_PWD}$'\\[\\033[00m\\]\\$ '
 
-    echo -ne "\033]0;$TITLE\007"  
-}  
+    if [[ -n "$TITLE_OVERRIDE" ]]; then
+        TITLE="$TITLE_OVERRIDE"
+    fi
 
-set_title() {  
-    TITLE_OVERRIDE="$*"  
-    update_window_title  
-}  
+    echo -ne "\\033]0;$TITLE\\007"
+}
 
-PROMPT_COMMAND="update_window_title"  
+set_title() {
+    TITLE_OVERRIDE="$*"
+    update_window_title
+}
 
-update_window_title  
+PROMPT_COMMAND="update_window_title"
+update_window_title
 
-# Shell environment aliases  
-alias cb='function _cb() { clear && bash; }; _cb'  
-alias c='clear'  
-alias cl='clear'  
-alias clr='clear'  
-alias cv='function _cv() { clear; n; gpt_print; }; _cv'  
-alias cx='chmod +x'  
-alias kdirstat='qdirstat'  
+# Shell environment aliases
+alias cb='function _cb() { clear && bash; }; _cb'
+alias c='clear'
+alias cl='clear'
+alias clr='clear'
+alias cv='function _cv() { clear; n; gpt_print; }; _cv'
+alias cx='chmod +x'
+alias kdirstat='qdirstat'
 
-# Directory and filesystem shortcuts  
-alias cgit='cd ~/.alfe.sh/git'  
-alias cdgit='cd ~/.alfe.sh/git'  
-alias lsl='ls -lahtr --group-directories-first --color=auto'  
-alias lsf='ls -lahtr --color=always | grep --color=always -v "^d"'  
+# Directory and filesystem shortcuts
+alias cgit='cd ~/.alfe.sh/git'
+alias cdgit='cd ~/.alfe.sh/git'
+alias lsl='ls -lahtr --group-directories-first --color=auto'
+alias lsf='ls -lahtr --color=always | grep --color=always -v "^d"'
 
-# Log each command to individual JSON files  
-preexec_invoke_exec() {  
-    [ -n "$COMP_LINE" ] && return  
-    [[ "$BASH_COMMAND" == "$PROMPT_COMMAND" || "$BASH_COMMAND" == "preexec"* ]] && return  
+# Log each command to individual JSON files
+preexec_invoke_exec() {
+    [ -n "$COMP_LINE" ] && return
+    [[ "$BASH_COMMAND" == "$PROMPT_COMMAND" || "$BASH_COMMAND" == "preexec"* ]] && return
 
-    echo -e "\033[0;32m$(date '+%m/%d/%y %H:%M:%S')\033[0m"  
+    echo -e "\\033[0;32m$(date '+%m/%d/%y %H:%M:%S')\\033[0m"
 
-    local command="${BASH_COMMAND}"  
-    if [[ "$command" == *$'\n'* ]]; then  
-        command=$(echo "$command" | tr '\n' ';')  
-    fi  
+    local command="$BASH_COMMAND"
+    if [[ "$command" == *$'\n'* ]]; then
+        command=$(echo "$command" | tr '\n' ';')
+    fi
 
-    local timestamp=$(date +%s%3N)  
-    local pid="$$"  
-    local user="$USER"  
-    local cwd="$PWD"  
+    local timestamp
+    local pid
+    local user
+    local cwd
 
-    local log_dir="$HOME/.alfe.sh/alsh/history/$pid"  
-    mkdir -p "$log_dir"  
+    timestamp=$(date +%s%3N)
+    pid="$$"
+    user="$USER"
+    cwd="$PWD"
 
-    local log_file="$log_dir/${timestamp}.json"  
+    local log_dir="$HOME/.alfe.sh/alsh/history/$pid"
+    mkdir -p "$log_dir"
 
-    local escaped_command=$(printf '%s' "$command" | sed -e 's/\\/\\\\/g' -e 's/\"/\\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')  
-    local escaped_cwd=$(printf '%s' "$cwd" | sed -e 's/\\/\\\\/g' -e 's/\"/\\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')  
+    local log_file="$log_dir/${timestamp}.json"
 
-    cat > "$log_file" <<EOF  
-{  
-    "timestamp": "$timestamp",  
-    "pid": "$pid",  
-    "user": "$user",  
-    "cwd": "$escaped_cwd",  
-    "command": "$escaped_command"  
-}  
-EOF  
-}  
+    local escaped_command
+    local escaped_cwd
 
-trap 'preexec_invoke_exec' DEBUG  
+    escaped_command=$(printf '%s' "$command" | sed -e 's/\\/\\\\/g' -e 's/\"/\\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    escaped_cwd=$(printf '%s' "$cwd"    | sed -e 's/\\/\\\\/g' -e 's/\"/\\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
 
-# Enhanced nano function  
-nano() {  
-    local new_files=()  
-    for arg in "$@"; do  
-        if [[ "$arg" == *.sh ]]; then  
-            if [ ! -f "$arg" ]; then  
-                echo "#!/bin/bash" > "$arg"  
-                new_files+=("$arg")  
-            fi  
-        fi  
+    cat > "$log_file" <<EOF
+{
+    "timestamp": "$timestamp",
+    "pid": "$pid",
+    "user": "$user",
+    "cwd": "$escaped_cwd",
+    "command": "$escaped_command"
+}
+EOF
+}
 
-        if [[ "$arg" == ".gitignore" ]]; then  
-            if [ ! -f "$arg" ]; then  
-                cat ~/.alfe.sh/git/faybian-scripts-org/default.gitignore > "$arg"  
-            fi  
-        fi  
-    done  
-    command nano "$@"  
+trap 'preexec_invoke_exec' DEBUG
 
-    echo "Nano session closed at $(date '+%Y-%m-%d %H:%M:%S')" >> "$HOME/.nano_history.log"  
+# Enhanced nano function
+nano() {
+    local new_files=()
+    for arg in "$@"; do
+        if [[ "$arg" == *.sh ]]; then
+            if [ ! -f "$arg" ]; then
+                echo "#!/bin/bash" > "$arg"
+                new_files+=("$arg")
+            fi
+        fi
 
-    for f in "${new_files[@]}"; do  
-        chmod +x "$f"  
-    done  
+        if [[ "$arg" == ".gitignore" ]]; then
+            if [ ! -f "$arg" ]; then
+                cat ~/.alfe.sh/git/faybian-scripts-org/default.gitignore > "$arg"
+            fi
+        fi
+    done
 
-    for f in "$@"; do  
-        [ -f "$f" ] || continue  
-        sed -i -e '1{/^===== Start of file: /d}' -e '${/^===== End of file: /d}' "$f"  
-    done  
-}  
+    command nano "$@"
+    echo "Nano session closed at $(date '+%Y-%m-%d %H:%M:%S')" >> "$HOME/.nano_history.log"
 
-alias bashup='~/.alfe.sh/git/faybian-scripts-org/utils/cp_git_to_bashrc.sh'  
-alias bup='~/.alfe.sh/git/faybian-scripts-org/utils/cp_git_to_bashrc.sh'  
-alias alsh='bash'  
+    for f in "${new_files[@]}"; do
+        chmod +x "$f"
+    done
 
-# Redshift function  
-rs() {  
-    redshift -x && redshift -O "$1"  
-}  
-export -f rs  
+    for f in "$@"; do
+        [ -f "$f" ] || continue
+        sed -i -e '1{/^===== Start of file: /d}' -e '${/^===== End of file: /d}' "$f"
+    done
+}
 
-symlink() {  
-    if [ "$#" -ne 2 ]; then  
-        echo "Usage: symlink <target> <linkName>"  
-        return 1  
-    fi  
-    ln -s "$1" "$2"  
-}  
-export -f symlink  
+alias bashup='~/.alfe.sh/git/faybian-scripts-org/utils/cp_git_to_bashrc.sh'
+alias bup='~/.alfe.sh/git/faybian-scripts-org/utils/cp_git_to_bashrc.sh'
+alias alsh='bash'
 
-rmn() {  
-    if [ "$#" -eq 0 ]; then  
-        echo "Usage: rmn <filename>"  
-    else  
-        rm "$1" && nano "$1"  
-    fi  
-}  
-alias rnm='rmn'  
-alias nrm='rmn'  
-alias e='exit'  
+# Redshift function
+rs() {
+    redshift -x && redshift -O "$1"
+}
+export -f rs
 
+symlink() {
+    if [ "$#" -ne 2 ]; then
+        echo "Usage: symlink <target> <linkName>"
+        return 1
+    fi
+    ln -s "$1" "$2"
+}
+export -f symlink
+
+rmn() {
+    if [ "$#" -eq 0 ]; then
+        echo "Usage: rmn <filename>"
+    else
+        rm "$1" && nano "$1"
+    fi
+}
+alias rnm='rmn'
+alias nrm='rmn'
+alias e='exit'
