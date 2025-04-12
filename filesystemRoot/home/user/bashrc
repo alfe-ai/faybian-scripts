@@ -360,3 +360,4 @@ rmn() {
     fi
 }
 alias rnm='rmn'
+alias e='exit'
