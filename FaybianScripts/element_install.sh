@@ -56,6 +56,6 @@ echo "Adding Element repository..."
 echo "deb [signed-by=$KEYRING_PATH] https://packages.element.io/debian/ default main" | sudo tee /etc/apt/sources.list.d/element-io.list
 
 echo "Updating package list and installing Element Desktop..."
-sudo apt update
-sudo apt install -y element-desktop
+#sudo apt update
+#sudo apt install -y element-desktop
 
