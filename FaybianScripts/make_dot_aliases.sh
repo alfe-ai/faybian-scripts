@@ -7,7 +7,7 @@ if [ ! -L "${HOME}/.alfe/git" ]; then
 fi
 
 if [ ! -L "${HOME}/git" ]; then
-    ln -s "${HOME}/.alfe/git" "${HOME}/git"
+    ln -s "${HOME}/.fayra/Whimsical/git" "${HOME}/git"
 fi
 
 echo "Directory ~/.alfe ensured. Symlinks ~/.alfe/git and ~/git created."
