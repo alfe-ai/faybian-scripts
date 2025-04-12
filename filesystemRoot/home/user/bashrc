@@ -58,11 +58,11 @@ git_prompt_info() {
 
     if [ -z "$status_output" ] && git status | grep -q "Your branch is up to date with"; then
         color="\[\033[01;32m\]"  # Green
-        echo "${color}($hash, $branch, clean, $timestamp)\[\033[00m\]"
+        echo -n "${color}($hash, $branch, clean, $timestamp)\[\033[00m\]"
     else
         color="\[\033[01;33m\]"  # Orange
         local num_changes=$(echo "$status_output" | wc -l | tr -d ' ')
-        echo "${color}($hash, $branch, ${num_changes} changes, $timestamp)\[\033[00m\]"
+        echo -n "${color}($hash, $branch, ${num_changes} changes, $timestamp)\[\033[00m\]"
     fi
 }
 
@@ -167,7 +167,7 @@ pd() {
     git remote -v
     echo ""
     echo "-------------"
-    $TEXTC_DIRECTORY/textc.sh --color darkred --text "Current Directory:"
+    $TEXTC_DIRECTORY.textc.sh --color darkred --text "Current Directory:"
     pwd
     echo "-------------"
 }
