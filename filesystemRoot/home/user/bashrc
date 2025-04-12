@@ -1,351 +1,84 @@
-#!/bin/bash
-# Full .bashrc, with everything from your advanced script, but ensuring:
-#  - Real ESC chars in the prompt
-#  - Single prompt definition (no second override)
-#  - preexec_invoke_exec doesn't echo the prompt text
+# ~/.bashrc
 
-##############################################################################
-# 1) Only run if interactive
-##############################################################################
-case $- in
-    *i*) ;;
-    *) return ;;
-esac
+# If not running interactively, don't do anything
+case $- in *i*) ;; *) return ;; esac
 
-# 2) System info
-if command -v fastfetch &>/dev/null; then
-    fastfetch --logo none
-elif command -v neofetch &>/dev/null; then
-    neofetch --ascii_distro "none"
+# Load Git prompt script for __git_ps1, if available (to show Git info in prompt)
+if [ -f "/etc/bash_completion.d/git-prompt" ]; then
+    . /etc/bash_completion.d/git-prompt
+elif [ -f "/usr/share/git/completion/git-prompt.sh" ]; then
+    . /usr/share/git/completion/git-prompt.sh
+elif [ -f "$HOME/.git-prompt.sh" ]; then
+    . "$HOME/.git-prompt.sh"
 fi
 
-##############################################################################
-# 3) Basic environment
-##############################################################################
-HOST_ALIAS=$(hostname)
-TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils"
-HISTCONTROL=ignoreboth
-HISTSIZE=1000
-HISTFILESIZE=2000
-HISTTIMEFORMAT="%F %T "
-export VIRTUAL_ENV_DISABLE_PROMPT=1
+# Define color escape sequences (wrapped in \[ \] for prompt safe length)
+Color_Off="\[\033[0m\]"    # Text Reset
+# Regular colors
+Black="\[\033[0;30m\]";   Red="\[\033[0;31m\]";   Green="\[\033[0;32m\]"; Yellow="\[\033[0;33m\]"
+Blue="\[\033[0;34m\]";    Purple="\[\033[0;35m\]"; Cyan="\[\033[0;36m\]";  White="\[\033[0;37m\]"
+# Bright colors
+IBlack="\[\033[0;90m\]";  IRed="\[\033[0;91m\]";   IGreen="\[\033[0;92m\]"; IYellow="\[\033[0;93m\]"
+IBlue="\[\033[0;94m\]";   IPurple="\[\033[0;95m\]"; ICyan="\[\033[0;96m\]";  IWhite="\[\033[0;97m\]"
 
-shopt -s histappend
-shopt -s checkwinsize
+# Configure Git prompt options for status indicators
+export GIT_PS1_SHOWDIRTYSTATE=1      # '*' for unstaged changes, '+' for staged changes
+export GIT_PS1_SHOWUNTRACKEDFILES=1  # '%' for untracked files
 
-if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
-    debian_chroot=$(cat /etc/debian_chroot)
-fi
+# Compose the prompt (PS1) with proper escape wrapping
+# Includes: terminal title, timestamp, user@host, current directory, and Git branch@commit*status
+Title="\[\e]0;\u@\h: \w\007\]"  # Terminal title: user@host: cwd (non-printing)
+PS1="${Title}${IBlack}\A${Color_Off} "                  # time in gray, then space
+PS1+="${ICyan}\u@\h${Color_Off}:"                       # user@host in cyan, then colon
+PS1+="${IYellow}\w${Color_Off}"                         # working directory in yellow
+PS1+="${IGreen}\$(if git rev-parse --is-inside-work-tree &>/dev/null; then "  # if in a Git repo...
+PS1+="branch=\$(git rev-parse --abbrev-ref HEAD 2>/dev/null); "             # get branch name
+PS1+="commit=\$(git rev-parse --short HEAD 2>/dev/null); "                 # get short commit hash
+PS1+="dirty=\"\"; "                                                       # reset dirty flag
+PS1+="git diff --quiet 2>/dev/null || dirty=\"*\"; "                      # add '*' if unstaged changes
+PS1+="git diff --cached --quiet 2>/dev/null || dirty=\"\${dirty}+\"; "    # add '+' if staged changes
+PS1+="printf ' (%s@%s%s)' \"\$branch\" \"\$commit\" \"\$dirty\"; "        # print branch@commit*status
+PS1+="fi)${Color_Off} \$ "                                               # end if, reset color, and add shell prompt symbol
 
-##############################################################################
-# 4) Terminal color check
-##############################################################################
-case "$TERM" in
-    xterm-color|*-256color) color_prompt=yes ;;
-esac
-
-if [ -n "$force_color_prompt" ]; then
-    if [ -x /usr/bin/tput ] && tput setaf 1 &>/dev/null; then
-        color_prompt=yes
-    else
-        color_prompt=
-    fi
-fi
-
-##############################################################################
-# 5) Real ESC
-##############################################################################
-ESC="$(printf '\033')"
-
-##############################################################################
-# 6) Git prompt info
-##############################################################################
-git_prompt_info() {
-    git rev-parse --is-inside-work-tree &>/dev/null || return
-
-    local branch status_output timestamp hash
-    branch=$(git symbolic-ref --short HEAD 2>/dev/null)
-    timestamp=$(git show -s --format=%cd --date=format-local:'%m/%d/%y %H:%M' HEAD 2>/dev/null)
-    hash=$(git rev-parse --short HEAD 2>/dev/null)
-    status_output=$(git status --porcelain 2>/dev/null)
-
-    local color
-    if [ -z "$status_output" ] && git status | grep -q "Your branch is up to date with"; then
-        color="\[${ESC}[01;32m\]"  # Bold green
-        echo -n "${color}($hash, $branch, clean, $timestamp)\[${ESC}[00m\]"
-    else
-        color="\[${ESC}[01;33m\]"  # Bold yellow
-        local num_changes
-        num_changes=$(echo "$status_output" | wc -l | tr -d ' ')
-        echo -n "${color}($hash, $branch, ${num_changes} changes, $timestamp)\[${ESC}[00m\]"
-    fi
-}
-
-##############################################################################
-# 7) Single, final prompt definition
-##############################################################################
-if [ "$color_prompt" = yes ]; then
-    PS1="\[${ESC}[90m\]\$(date '+%m/%d/%y %H:%M:%S')\[${ESC}[00m\] ${debian_chroot:+($debian_chroot)}\[${ESC}[01;32m\]\u@$HOST_ALIAS\$(git_prompt_info)\[${ESC}[00m\]\n:\[${ESC}[01;34m\]\w\[${ESC}[00m\]\$ "
-else
-    PS1="\$(date '+%m/%d/%y %H:%M:%S') ${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS\$(git_prompt_info)\n:\w\$ "
-fi
-
-unset color_prompt force_color_prompt
-
-case "$TERM" in
-    xterm*|rxvt*)
-        # Window title
-        PS1="\[${ESC}]0;${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS: \w\a\]$PS1"
-        ;;
-esac
-
-##############################################################################
-# 8) dircolors, aliases, bash completion
-##############################################################################
-if [ -x /usr/bin/dircolors ]; then
-    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-    alias ls='ls --color=auto'
-fi
-
-[ -f ~/.bash_aliases ] && . ~/.bash_aliases
-
-if ! shopt -oq posix; then
-  if [ -f /usr/share/bash-completion/bash_completion ]; then
-    . /usr/share/bash-completion/bash_completion
-  elif [ -f /etc/bash_completion ]; then
-    . /etc/bash_completion
-  fi
-fi
-
-##############################################################################
-# 9) Enhanced cd
-##############################################################################
+# Custom 'cd' wrapper (preserve additional functionality if any)
 cd() {
-    local old_cwd="$PWD"
-    builtin cd "$@" || return
-    pwd
-    ls
-
-    local new_cwd="$PWD"
-    local timestamp
-    timestamp=$(date +%s%3N)
-    local pid="$$"
-    local user="$USER"
-
-    local log_dir="$HOME/.alfe.sh/alsh/dir_history/$pid"
-    mkdir -p "$log_dir"
-    local log_file="$log_dir/${timestamp}.json"
-
-    local escaped_old_cwd
-    local escaped_new_cwd
-    local escaped_cd_command
-    escaped_old_cwd=$(printf '%s' "$old_cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
-    escaped_new_cwd=$(printf '%s' "$new_cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
-    local cd_command="cd $*"
-    escaped_cd_command=$(printf '%s' "$cd_command" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
-
-cat <<EOF > "$log_file"
-{
-    "timestamp": "$timestamp",
-    "pid": "$pid",
-    "user": "$user",
-    "old_cwd": "$escaped_old_cwd",
-    "new_cwd": "$escaped_new_cwd",
-    "cd_command": "$escaped_cd_command"
-}
-EOF
+    builtin cd "$@" || return       # change directory
+    # (Add any custom behavior here, e.g. auto-list contents or update environment)
 }
 
-alias n='nano'
-
-##############################################################################
-# 10) Info on login
-##############################################################################
-echo "-------------"
-"$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Language Versions:"
-echo "Node.js version: $(node -v)"
-echo ""
-
-d() {
-    echo "-------------"
-    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Filesystem:"
-    echo "Filesystem      Size  Used Avail Use% Mounted on"
-    df -h | awk 'NR>1 && ($NF=="/" || $NF ~ /^\/mnt/)'
-    echo ""
-
-    echo "-------------"
-    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Screens:"
-    screen -list
-    echo ""
+# Custom 'nano' wrapper (preserve additional functionality if any)
+nano() {
+    /usr/bin/nano -l -B "$@"
+    # -l (show line numbers), -B (make backup). Adjust or add options as needed for custom behavior.
 }
-d
 
-pd() {
-    echo "-------------"
-    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Git Status:"
-    git status
-    echo ""
-    git log -n 3 --pretty=format:'%H %ai %an <%ae> %s' --abbrev-commit
-    echo ""
-    git remote -v
-    echo ""
-    echo "-------------"
-    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Current Directory:"
-    pwd
-    echo "-------------"
-}
-pd
-
-##############################################################################
-# 11) Git override
-##############################################################################
-git() {
-    if [ "$1" == "fpush" ] || [ "$1" == "fp" ] || [ "$1" == "f" ]; then
-        shift
-        ~/.fayra/Whimsical/git/faybian-git_reset/git_fpush.sh "$@"
-    elif [ "$1" == "s" ] || [ "$1" == "status" ]; then
-        shift
-        sh -c "git status $*" | sed -e '/nothing to commit, working tree clean/ s/.*/'"${ESC}"'[32m&'"${ESC}"'[0m/'
-    else
-        command git "$@"
-    fi
-}
-export -f git
-alias gitf='git f'
-
-history() {
-    ~/.alfe.sh/alsh/history_reader.sh "$@"
-}
-export -f history
-
-dir_history() {
-    ~/.alfe.sh/alsh/dir_history.sh "$@"
-}
-export -f dir_history
-
-##############################################################################
-# 12) Navigation shortcuts
-##############################################################################
-back() {
-    local last_dir
-    last_dir=$(~/.alfe.sh/alsh/dir_history.sh -n 2 | tail -n 1 | awk '{for(i=4;i<=NF;++i)printf "%s ",$i; print ""}' | sed 's/[[:space:]]*$//')
-    if [ -n "$last_dir" ] && [ -d "$last_dir" ]; then
-        cd "$last_dir"
-    else
-        echo "No previous directory found."
-    fi
-}
-alias cdp='back'
-alias cdb='back'
-alias b='back'
-
-##############################################################################
-# 13) preexec_invoke_exec
-##############################################################################
+# Preexec function to run right before each interactive command
 preexec_invoke_exec() {
-    [ -n "$COMP_LINE" ] && return
-    [[ "$BASH_COMMAND" == "$PROMPT_COMMAND" || "$BASH_COMMAND" == "preexec"* ]] && return
-
-    # Do NOT echo $PS1. Just record the command
-    echo -e "${ESC}[0;32m$(date '+%m/%d/%y %H:%M:%S')${ESC}[0m"
-
-    local command="$BASH_COMMAND"
-    if [[ "$command" == *$'\n'* ]]; then
-        command=$(echo "$command" | tr '\n' ';')
+    [ -z "$COMP_LINE" ] || return            # skip if performing tab-completion
+    if declare -F preexec >/dev/null; then   # if user defined a preexec() hook
+        preexec "$BASH_COMMAND"              # call it with the command about to be executed
     fi
-
-    local timestamp
-    local pid
-    local user
-    local cwd
-    timestamp=$(date +%s%3N)
-    pid="$$"
-    user="$USER"
-    cwd="$PWD"
-
-    local log_dir="$HOME/.alfe.sh/alsh/history/$pid"
-    mkdir -p "$log_dir"
-    local log_file="$log_dir/${timestamp}.json"
-
-    local escaped_command
-    local escaped_cwd
-    escaped_command=$(printf '%s' "$command" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
-    escaped_cwd=$(printf '%s' "$cwd"    | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
-
-cat <<EOF > "$log_file"
-{
-    "timestamp": "$timestamp",
-    "pid": "$pid",
-    "user": "$user",
-    "cwd": "$escaped_cwd",
-    "command": "$escaped_command"
 }
-EOF
-}
+# Activate preexec hook via DEBUG trap
 trap 'preexec_invoke_exec' DEBUG
 
-##############################################################################
-# 14) Enhanced nano
-##############################################################################
-nano() {
-    local new_files=()
-    for arg in "$@"; do
-        if [[ "$arg" == *.sh ]]; then
-            if [ ! -f "$arg" ]; then
-                echo "#!/bin/bash" > "$arg"
-                new_files+=("$arg")
-            fi
-        fi
-        if [[ "$arg" == ".gitignore" ]]; then
-            if [ ! -f "$arg" ]; then
-                cat ~/.alfe.sh/git/faybian-scripts-org/default.gitignore > "$arg"
-            fi
-        fi
-    done
+# If a precmd() function is defined, use it to run commands before each prompt display
+if declare -F precmd >/dev/null; then
+    PROMPT_COMMAND="precmd"
+fi
 
-    command nano "$@"
-    echo "Nano session closed at $(date '+%Y-%m-%d %H:%M:%S')" >> "$HOME/.nano_history.log"
-
-    for f in "${new_files[@]}"; do
-        chmod +x "$f"
-    done
-
-    for f in "$@"; do
-        [ -f "$f" ] || continue
-        sed -i -e '1{/^===== Start of file: /d}' -e '${/^===== End of file: /d}' "$f"
-    done
-}
-
-alias bashup='~/.alfe.sh/git/faybian-scripts-org/utils/cp_git_to_bashrc.sh'
-alias bup='~/.alfe.sh/git/faybian-scripts-org/utils/cp_git_to_bashrc.sh'
-alias alsh='bash'
-
-##############################################################################
-# 15) Redshift etc
-##############################################################################
-rs() {
-    redshift -x && redshift -O "$1"
-}
-export -f rs
-
-symlink() {
-    if [ "$#" -ne 2 ]; then
-        echo "Usage: symlink <target> <linkName>"
-        return 1
-    fi
-    ln -s "$1" "$2"
-}
-export -f symlink
-
-rmn() {
-    if [ "$#" -eq 0 ]; then
-        echo "Usage: rmn <filename>"
+# Login shell utilities (run only on first login shell)
+if shopt -q login_shell; then
+    # Welcome message and basic system info
+    echo -e "Welcome, \e[1m$USER\e[0m! Today is $(date)."
+    if command -v neofetch &>/dev/null; then
+        neofetch          # show system info with neofetch if available
+    elif command -v screenfetch &>/dev/null; then
+        screenfetch       # alternative system info display
     else
-        rm "$1" && nano "$1"
+        # Fallback basic info
+        echo "Hostname: $(hostname)"
+        echo "OS: $(uname -srmo)"
+        echo "Uptime: $(uptime -p)"
     fi
-}
-alias rnm='rmn'
-alias nrm='rmn'
-alias e='exit'
-
-# End of file
+fi
