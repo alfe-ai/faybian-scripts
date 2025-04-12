@@ -339,7 +339,18 @@ alias alsh='bash'
 
 # Redshift function
 rs() {
-    redshift -x && redshift -O "$1"
+    if [ -n "$1" ]; then
+        LAST_RS_TEMP="$1"
+        redshift -x
+        redshift -O "$1"
+        echo "Set Redshift color temp to: $1 K"
+    else
+        if [ -n "$LAST_RS_TEMP" ]; then
+            echo "Redshift currently set to: $LAST_RS_TEMP K"
+        else
+            echo "No Redshift color temp has been set yet."
+        fi
+    fi
 }
 export -f rs
 
