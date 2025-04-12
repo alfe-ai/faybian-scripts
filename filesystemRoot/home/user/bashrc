@@ -376,9 +376,7 @@ rmn() {
         rm "$1" && nano "$1"
     fi
 }
+
 alias rnm='rmn'
-<<<<<<< HEAD
-=======
 alias nrm='rmn'
 alias e='exit'
->>>>>>> b90fb192ba06fd78dabd688a4ef719bf5d9f8e40
