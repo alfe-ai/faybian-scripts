@@ -8,11 +8,11 @@ mkdir -p "${HOME}/.alfe"
 if [ -L "${HOME}/.alfe/git" ]; then
     rm -f "${HOME}/.alfe/git"
 fi
-ln -s "/mnt/part5/dot_fayra/Whimsical/git" "${HOME}/.alfe/git"
+ln -s "${HOME}/.fayra/Whimsical/git" "${HOME}/.alfe/git"
 
 if [ -L "${HOME}/git" ]; then
     rm -f "${HOME}/git"
 fi
-ln -s "/mnt/part5/dot_fayra/Whimsical/git" "${HOME}/git"
+ln -s "${HOME}/.fayra/Whimsical/git" "${HOME}/git"
 
 echo "Directory ~/.alfe ensured. Symlinks ~/.alfe/git and ~/git created (overwriting old symlinks)."
