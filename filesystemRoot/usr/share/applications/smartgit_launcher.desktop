@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 Name=SmartGit
-Comment=Integrated Development Environment for PHP
+Comment=Git Client
 Exec=/home/syl/Downloads/smartgit-linux-24_1_2/smartgit/bin/smartgit.sh
 Icon=/home/syl/smartgit.svg
 Terminal=false
