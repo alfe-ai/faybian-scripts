@@ -339,7 +339,23 @@ alias alsh='bash'
 
 # Redshift function
 rs() {
-    redshift -x && redshift -O "$1"
+    local last_temp_file="$HOME/.fayra/redshift_last_temp"
+
+    if [ -n "$1" ]; then
+        LAST_RS_TEMP="$1"
+        mkdir -p "$(dirname "$last_temp_file")"
+        echo "$LAST_RS_TEMP" > "$last_temp_file"
+        redshift -x
+        redshift -O "$LAST_RS_TEMP"
+        echo "Set Redshift color temp to: $LAST_RS_TEMP K"
+    else
+        if [ -f "$last_temp_file" ]; then
+            LAST_RS_TEMP="$(cat "$last_temp_file")"
+            echo "Redshift currently set to: $LAST_RS_TEMP K"
+        else
+            echo "No Redshift color temp has been set yet."
+        fi
+    fi
 }
 export -f rs
 
@@ -360,4 +376,3 @@ rmn() {
     fi
 }
 alias rnm='rmn'
-
