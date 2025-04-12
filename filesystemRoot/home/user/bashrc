@@ -1,38 +1,351 @@
 #!/bin/bash
-# Minimal .bashrc with zero advanced logging or overrides
+# Full .bashrc, with everything from your advanced script, but ensuring:
+#  - Real ESC chars in the prompt
+#  - Single prompt definition (no second override)
+#  - preexec_invoke_exec doesn't echo the prompt text
 
+##############################################################################
 # 1) Only run if interactive
+##############################################################################
 case $- in
     *i*) ;;
     *) return ;;
 esac
 
-# 2) Provide real ESC as a variable
+# 2) System info
+if command -v fastfetch &>/dev/null; then
+    fastfetch --logo none
+elif command -v neofetch &>/dev/null; then
+    neofetch --ascii_distro "none"
+fi
+
+##############################################################################
+# 3) Basic environment
+##############################################################################
+HOST_ALIAS=$(hostname)
+TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils"
+HISTCONTROL=ignoreboth
+HISTSIZE=1000
+HISTFILESIZE=2000
+HISTTIMEFORMAT="%F %T "
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+
+shopt -s histappend
+shopt -s checkwinsize
+
+if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+    debian_chroot=$(cat /etc/debian_chroot)
+fi
+
+##############################################################################
+# 4) Terminal color check
+##############################################################################
+case "$TERM" in
+    xterm-color|*-256color) color_prompt=yes ;;
+esac
+
+if [ -n "$force_color_prompt" ]; then
+    if [ -x /usr/bin/tput ] && tput setaf 1 &>/dev/null; then
+        color_prompt=yes
+    else
+        color_prompt=
+    fi
+fi
+
+##############################################################################
+# 5) Real ESC
+##############################################################################
 ESC="$(printf '\033')"
 
-# 3) Simple function to show a Git branch (optional). No fancy logging
+##############################################################################
+# 6) Git prompt info
+##############################################################################
 git_prompt_info() {
     git rev-parse --is-inside-work-tree &>/dev/null || return
-    local hash
-    hash=$(git rev-parse --short HEAD 2>/dev/null)
-    local branch
-    branch=$(git symbolic-ref --short HEAD 2>/dev/null)
 
-    echo -n "($hash:$branch)"
+    local branch status_output timestamp hash
+    branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+    timestamp=$(git show -s --format=%cd --date=format-local:'%m/%d/%y %H:%M' HEAD 2>/dev/null)
+    hash=$(git rev-parse --short HEAD 2>/dev/null)
+    status_output=$(git status --porcelain 2>/dev/null)
+
+    local color
+    if [ -z "$status_output" ] && git status | grep -q "Your branch is up to date with"; then
+        color="\[${ESC}[01;32m\]"  # Bold green
+        echo -n "${color}($hash, $branch, clean, $timestamp)\[${ESC}[00m\]"
+    else
+        color="\[${ESC}[01;33m\]"  # Bold yellow
+        local num_changes
+        num_changes=$(echo "$status_output" | wc -l | tr -d ' ')
+        echo -n "${color}($hash, $branch, ${num_changes} changes, $timestamp)\[${ESC}[00m\]"
+    fi
 }
 
-# 4) Colorful prompt using $ESC for escapes
-PS1="\[${ESC}[1;32m\]\u@\h\[${ESC}[0m\] \[${ESC}[1;33m\]\$(git_prompt_info)\[${ESC}[0m\] \[${ESC}[1;34m\]\w\[${ESC}[0m\]\n\$ "
+##############################################################################
+# 7) Single, final prompt definition
+##############################################################################
+if [ "$color_prompt" = yes ]; then
+    PS1="\[${ESC}[90m\]\$(date '+%m/%d/%y %H:%M:%S')\[${ESC}[00m\] ${debian_chroot:+($debian_chroot)}\[${ESC}[01;32m\]\u@$HOST_ALIAS\$(git_prompt_info)\[${ESC}[00m\]\n:\[${ESC}[01;34m\]\w\[${ESC}[00m\]\$ "
+else
+    PS1="\$(date '+%m/%d/%y %H:%M:%S') ${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS\$(git_prompt_info)\n:\w\$ "
+fi
 
-# 5) Minimal aliases
-alias l='ls -la'
-alias c='clear'
+unset color_prompt force_color_prompt
 
-# 6) If this is xterm, set an invisible window title
 case "$TERM" in
     xterm*|rxvt*)
-        PS1="\[${ESC}]0;\u@\h: \w${ESC}[0m\]$PS1"
+        # Window title
+        PS1="\[${ESC}]0;${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS: \w\a\]$PS1"
         ;;
 esac
 
-# End of minimal .bashrc
+##############################################################################
+# 8) dircolors, aliases, bash completion
+##############################################################################
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+fi
+
+[ -f ~/.bash_aliases ] && . ~/.bash_aliases
+
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+  fi
+fi
+
+##############################################################################
+# 9) Enhanced cd
+##############################################################################
+cd() {
+    local old_cwd="$PWD"
+    builtin cd "$@" || return
+    pwd
+    ls
+
+    local new_cwd="$PWD"
+    local timestamp
+    timestamp=$(date +%s%3N)
+    local pid="$$"
+    local user="$USER"
+
+    local log_dir="$HOME/.alfe.sh/alsh/dir_history/$pid"
+    mkdir -p "$log_dir"
+    local log_file="$log_dir/${timestamp}.json"
+
+    local escaped_old_cwd
+    local escaped_new_cwd
+    local escaped_cd_command
+    escaped_old_cwd=$(printf '%s' "$old_cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    escaped_new_cwd=$(printf '%s' "$new_cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    local cd_command="cd $*"
+    escaped_cd_command=$(printf '%s' "$cd_command" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+
+cat <<EOF > "$log_file"
+{
+    "timestamp": "$timestamp",
+    "pid": "$pid",
+    "user": "$user",
+    "old_cwd": "$escaped_old_cwd",
+    "new_cwd": "$escaped_new_cwd",
+    "cd_command": "$escaped_cd_command"
+}
+EOF
+}
+
+alias n='nano'
+
+##############################################################################
+# 10) Info on login
+##############################################################################
+echo "-------------"
+"$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Language Versions:"
+echo "Node.js version: $(node -v)"
+echo ""
+
+d() {
+    echo "-------------"
+    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Filesystem:"
+    echo "Filesystem      Size  Used Avail Use% Mounted on"
+    df -h | awk 'NR>1 && ($NF=="/" || $NF ~ /^\/mnt/)'
+    echo ""
+
+    echo "-------------"
+    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Screens:"
+    screen -list
+    echo ""
+}
+d
+
+pd() {
+    echo "-------------"
+    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Git Status:"
+    git status
+    echo ""
+    git log -n 3 --pretty=format:'%H %ai %an <%ae> %s' --abbrev-commit
+    echo ""
+    git remote -v
+    echo ""
+    echo "-------------"
+    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Current Directory:"
+    pwd
+    echo "-------------"
+}
+pd
+
+##############################################################################
+# 11) Git override
+##############################################################################
+git() {
+    if [ "$1" == "fpush" ] || [ "$1" == "fp" ] || [ "$1" == "f" ]; then
+        shift
+        ~/.fayra/Whimsical/git/faybian-git_reset/git_fpush.sh "$@"
+    elif [ "$1" == "s" ] || [ "$1" == "status" ]; then
+        shift
+        sh -c "git status $*" | sed -e '/nothing to commit, working tree clean/ s/.*/'"${ESC}"'[32m&'"${ESC}"'[0m/'
+    else
+        command git "$@"
+    fi
+}
+export -f git
+alias gitf='git f'
+
+history() {
+    ~/.alfe.sh/alsh/history_reader.sh "$@"
+}
+export -f history
+
+dir_history() {
+    ~/.alfe.sh/alsh/dir_history.sh "$@"
+}
+export -f dir_history
+
+##############################################################################
+# 12) Navigation shortcuts
+##############################################################################
+back() {
+    local last_dir
+    last_dir=$(~/.alfe.sh/alsh/dir_history.sh -n 2 | tail -n 1 | awk '{for(i=4;i<=NF;++i)printf "%s ",$i; print ""}' | sed 's/[[:space:]]*$//')
+    if [ -n "$last_dir" ] && [ -d "$last_dir" ]; then
+        cd "$last_dir"
+    else
+        echo "No previous directory found."
+    fi
+}
+alias cdp='back'
+alias cdb='back'
+alias b='back'
+
+##############################################################################
+# 13) preexec_invoke_exec
+##############################################################################
+preexec_invoke_exec() {
+    [ -n "$COMP_LINE" ] && return
+    [[ "$BASH_COMMAND" == "$PROMPT_COMMAND" || "$BASH_COMMAND" == "preexec"* ]] && return
+
+    # Do NOT echo $PS1. Just record the command
+    echo -e "${ESC}[0;32m$(date '+%m/%d/%y %H:%M:%S')${ESC}[0m"
+
+    local command="$BASH_COMMAND"
+    if [[ "$command" == *$'\n'* ]]; then
+        command=$(echo "$command" | tr '\n' ';')
+    fi
+
+    local timestamp
+    local pid
+    local user
+    local cwd
+    timestamp=$(date +%s%3N)
+    pid="$$"
+    user="$USER"
+    cwd="$PWD"
+
+    local log_dir="$HOME/.alfe.sh/alsh/history/$pid"
+    mkdir -p "$log_dir"
+    local log_file="$log_dir/${timestamp}.json"
+
+    local escaped_command
+    local escaped_cwd
+    escaped_command=$(printf '%s' "$command" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    escaped_cwd=$(printf '%s' "$cwd"    | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+
+cat <<EOF > "$log_file"
+{
+    "timestamp": "$timestamp",
+    "pid": "$pid",
+    "user": "$user",
+    "cwd": "$escaped_cwd",
+    "command": "$escaped_command"
+}
+EOF
+}
+trap 'preexec_invoke_exec' DEBUG
+
+##############################################################################
+# 14) Enhanced nano
+##############################################################################
+nano() {
+    local new_files=()
+    for arg in "$@"; do
+        if [[ "$arg" == *.sh ]]; then
+            if [ ! -f "$arg" ]; then
+                echo "#!/bin/bash" > "$arg"
+                new_files+=("$arg")
+            fi
+        fi
+        if [[ "$arg" == ".gitignore" ]]; then
+            if [ ! -f "$arg" ]; then
+                cat ~/.alfe.sh/git/faybian-scripts-org/default.gitignore > "$arg"
+            fi
+        fi
+    done
+
+    command nano "$@"
+    echo "Nano session closed at $(date '+%Y-%m-%d %H:%M:%S')" >> "$HOME/.nano_history.log"
+
+    for f in "${new_files[@]}"; do
+        chmod +x "$f"
+    done
+
+    for f in "$@"; do
+        [ -f "$f" ] || continue
+        sed -i -e '1{/^===== Start of file: /d}' -e '${/^===== End of file: /d}' "$f"
+    done
+}
+
+alias bashup='~/.alfe.sh/git/faybian-scripts-org/utils/cp_git_to_bashrc.sh'
+alias bup='~/.alfe.sh/git/faybian-scripts-org/utils/cp_git_to_bashrc.sh'
+alias alsh='bash'
+
+##############################################################################
+# 15) Redshift etc
+##############################################################################
+rs() {
+    redshift -x && redshift -O "$1"
+}
+export -f rs
+
+symlink() {
+    if [ "$#" -ne 2 ]; then
+        echo "Usage: symlink <target> <linkName>"
+        return 1
+    fi
+    ln -s "$1" "$2"
+}
+export -f symlink
+
+rmn() {
+    if [ "$#" -eq 0 ]; then
+        echo "Usage: rmn <filename>"
+    else
+        rm "$1" && nano "$1"
+    fi
+}
+alias rnm='rmn'
+alias nrm='rmn'
+alias e='exit'
+
+# End of file
