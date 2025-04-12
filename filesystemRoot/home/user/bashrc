@@ -68,9 +68,9 @@ git_prompt_info() {
 
 if [ "$color_prompt" = yes ]; then
     # Timestamp in grey, non-bold
-    PS1="\[\033[90m\]\$(date '+%m/%d/%y %H:%M:%S')\[\033[00m\] ${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+    PS1="\[\033[90m\]\$(date '+%m/%d/%y %H:%M:%S %Z (UTC%:z)')\[\033[00m\] ${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
 else
-    PS1="\$(date '+%m/%d/%y %H:%M:%S') ${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS$(git_prompt_info):\w\$ "
+    PS1="\$(date '+%m/%d/%y %H:%M:%S %Z (UTC%:z)') ${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS$(git_prompt_info):\w\$ "
 fi
 unset color_prompt force_color_prompt
 
