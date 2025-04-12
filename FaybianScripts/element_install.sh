@@ -2,7 +2,7 @@
 set -e
 
 # Replace this with the correct GPG fingerprint for Element
-GPG_FINGERPRINT="0000000000000000000000000000000000000000"
+GPG_FINGERPRINT="12d4cd600c2240a9f4a82071d7b0b66941d01538"
 KEYRING_PATH="/usr/share/keyrings/element-io-archive-keyring.gpg"
 TMP_KEY="/tmp/element_key.asc"
 
@@ -56,6 +56,6 @@ echo "Adding Element repository..."
 echo "deb [signed-by=$KEYRING_PATH] https://packages.element.io/debian/ default main" | sudo tee /etc/apt/sources.list.d/element-io.list
 
 echo "Updating package list and installing Element Desktop..."
-#sudo apt update
-#sudo apt install -y element-desktop
+sudo apt update
+sudo apt install -y element-desktop
 
