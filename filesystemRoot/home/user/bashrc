@@ -1,26 +1,19 @@
 #!/bin/bash
-# Full .bashrc with color prompt, no incomplete heredocs, passes `bash -n` syntax checks.
 
-##############################################################################
-# 1) Only load this file if running interactively
-##############################################################################
+# 1) Only load if interactive
 case $- in
     *i*) ;;
     *) return ;;
 esac
 
-##############################################################################
-# 2) System Information on Login (fastfetch or neofetch)
-##############################################################################
+# 2) Basic system info (fastfetch or neofetch)
 if command -v fastfetch &>/dev/null; then
     fastfetch --logo none
 elif command -v neofetch &>/dev/null; then
     neofetch --ascii_distro "none"
 fi
 
-##############################################################################
-# 3) Basic Environment Setup
-##############################################################################
+# 3) Environment
 HOST_ALIAS=$(hostname)
 TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils"
 HISTCONTROL=ignoreboth
@@ -36,13 +29,10 @@ if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
     debian_chroot=$(cat /etc/debian_chroot)
 fi
 
-##############################################################################
-# 4) Check Terminal Color Support
-##############################################################################
+# 4) Color support
 case "$TERM" in
     xterm-color|*-256color) color_prompt=yes ;;
 esac
-
 if [ -n "$force_color_prompt" ]; then
     if [ -x /usr/bin/tput ] && tput setaf 1 &>/dev/null; then
         color_prompt=yes
@@ -51,15 +41,9 @@ if [ -n "$force_color_prompt" ]; then
     fi
 fi
 
-##############################################################################
-# 5) Git Prompt Function
-##############################################################################
+# 5) Git prompt
 git_prompt_info() {
-    # Exit if not in a git repo
-    if ! git rev-parse --is-inside-work-tree &>/dev/null; then
-        return
-    fi
-
+    git rev-parse --is-inside-work-tree &>/dev/null || return
     local branch color status_output timestamp hash
     branch=$(git symbolic-ref --short HEAD 2>/dev/null)
     timestamp=$(git show -s --format=%cd --date=format-local:'%m/%d/%y %H:%M' HEAD 2>/dev/null)
@@ -67,11 +51,9 @@ git_prompt_info() {
     status_output=$(git status --porcelain 2>/dev/null)
 
     if [ -z "$status_output" ] && git status | grep -q "Your branch is up to date with"; then
-        # Clean
         color=$'\[\033[01;32m\]'  # Bold green
         echo -n "${color}($hash, $branch, clean, $timestamp)$'\[\033[00m\]'"
     else
-        # Has changes
         color=$'\[\033[01;33m\]'  # Bold yellow
         local num_changes
         num_changes=$(echo "$status_output" | wc -l | tr -d ' ')
@@ -79,11 +61,8 @@ git_prompt_info() {
     fi
 }
 
-##############################################################################
-# 6) PS1 Prompt
-##############################################################################
+# 6) Prompt
 if [ "$color_prompt" = yes ]; then
-    # Use ANSI-C string quoting so \033 is interpreted as ESC
     PS1=$'\n\[\033[90m\]'\
 "$(date '+%m/%d/%y %H:%M:%S')"\
 $'\[\033[00m\] '"${debian_chroot:+($debian_chroot)}"$'$\[\033[01;32m\]\u@'\
@@ -91,21 +70,16 @@ $'\[\033[00m\] '"${debian_chroot:+($debian_chroot)}"$'$\[\033[01;32m\]\u@'\
 else
     PS1="\n$(date '+%m/%d/%y %H:%M:%S') ${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS\$(git_prompt_info)\n:\w\$ "
 fi
-
 unset color_prompt force_color_prompt
 
-# Window title if xterm-like
+# xterm titles
 case "$TERM" in
     xterm*|rxvt*)
         PS1=$'\[\033]0;'${debian_chroot:+($debian_chroot)}$'\u@'$HOST_ALIAS$': \w\007\]'$PS1
         ;;
-    *)
-        ;;
 esac
 
-##############################################################################
-# 7) dircolors + aliases
-##############################################################################
+# dircolors
 if [ -x /usr/bin/dircolors ]; then
     if [ -r ~/.dircolors ]; then
         eval "$(dircolors -b ~/.dircolors)"
@@ -115,8 +89,8 @@ if [ -x /usr/bin/dircolors ]; then
     alias ls='ls --color=auto'
 fi
 
+# .bash_aliases, bash-completion
 [ -f ~/.bash_aliases ] && . ~/.bash_aliases
-
 if ! shopt -oq posix; then
   if [ -f /usr/share/bash-completion/bash_completion ]; then
     . /usr/share/bash-completion/bash_completion
@@ -125,9 +99,7 @@ if ! shopt -oq posix; then
   fi
 fi
 
-##############################################################################
-# 8) Enhanced cd Command with JSON Logging
-##############################################################################
+# 7) Enhanced cd
 cd() {
     local old_cwd="$PWD"
     builtin cd "$@" || return
@@ -143,7 +115,6 @@ cd() {
     mkdir -p "$log_dir"
     local log_file="$log_dir/${timestamp}.json"
 
-    # Escape JSON fields
     local escaped_old_cwd
     local escaped_new_cwd
     local escaped_cd_command
@@ -151,7 +122,7 @@ cd() {
     escaped_new_cwd=$(printf '%s' "$new_cwd" | sed -e 's/\\/\\\\/g' -e 's/\"/\\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
     escaped_cd_command=$(printf '%s' "cd $*" | sed -e 's/\\/\\\\/g' -e 's/\"/\\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
 
-    cat <<EOF > "$log_file"
+cat <<EOF > "$log_file"
 {
     "timestamp": "$timestamp",
     "pid": "$pid",
@@ -165,9 +136,7 @@ EOF
 
 alias n='nano'
 
-##############################################################################
-# 9) System Info Display
-##############################################################################
+# 8) System info
 echo "-------------"
 "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Language Versions:"
 echo "Node.js version: $(node -v)"
@@ -197,17 +166,14 @@ pd() {
     git remote -v
     echo ""
     echo "-------------"
-    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Current Directory:"
+    "$TEXTC_DIRECTORY.textc.sh" --color darkred --text "Current Directory:"
     pwd
     echo "-------------"
 }
 pd
 
-##############################################################################
-# 10) Overridden git, with convenience aliases
-##############################################################################
+# 9) Overridden git
 git() {
-    # fpush
     if [ "$1" == "fpush" ] || [ "$1" == "fp" ] || [ "$1" == "f" ]; then
         shift
         ~/.fayra/Whimsical/git/faybian-git_reset/git_fpush.sh "$@"
@@ -231,9 +197,7 @@ dir_history() {
 }
 export -f dir_history
 
-##############################################################################
-# 11) Navigation shortcuts
-##############################################################################
+# 10) Navigation shortcuts
 back() {
     local last_dir
     last_dir=$(~/.alfe.sh/alsh/dir_history.sh -n 2 | tail -n 1 | awk '{for(i=4;i<=NF;++i)printf "%s ",$i; print ""}' | sed 's/[[:space:]]*$//')
@@ -247,9 +211,7 @@ alias cdp='back'
 alias cdb='back'
 alias b='back'
 
-##############################################################################
-# 12) Window Title Management
-##############################################################################
+# 11) Window title
 update_window_title() {
     local home="${HOME%/}"
     local SHORT_PWD
@@ -274,18 +236,22 @@ set_title() {
 
 PROMPT_COMMAND="update_window_title"
 
-##############################################################################
-# 13) Command Logging (preexec_invoke_exec)
-##############################################################################
+# 12) Command logging: skip prompt lines
 preexec_invoke_exec() {
+    # If completing a command or if it's the PROMPT_COMMAND, skip
     [ -n "$COMP_LINE" ] && return
     [[ "$BASH_COMMAND" == "$PROMPT_COMMAND" || "$BASH_COMMAND" == "preexec"* ]] && return
 
-    echo -e "\033[0;32m$(date '+%m/%d/%y %H:%M:%S')\033[0m"
+    # If the command text starts with an escape bracket (the prompt), skip
+    if [[ "$BASH_COMMAND" == *"\\[\\033"* ]]; then
+        return
+    fi
 
+    # Otherwise log it
+    echo -e "\\033[0;32m$(date '+%m/%d/%y %H:%M:%S')\\033[0m"
     local command="$BASH_COMMAND"
-    if [[ "$command" == *$'\n'* ]]; then
-        command=$(echo "$command" | tr '\n' ';')
+    if [[ "$command" == *$'\\n'* ]]; then
+        command=$(echo "$command" | tr '\\n' ';')
     fi
 
     local timestamp=$(date +%s%3N)
@@ -302,7 +268,7 @@ preexec_invoke_exec() {
     escaped_command=$(printf '%s' "$command" | sed -e 's/\\/\\\\/g' -e 's/\"/\\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
     escaped_cwd=$(printf '%s' "$cwd"    | sed -e 's/\\/\\\\/g' -e 's/\"/\\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
 
-    cat <<EOF > "$log_file"
+cat <<EOF > "$log_file"
 {
     "timestamp": "$timestamp",
     "pid": "$pid",
@@ -314,19 +280,14 @@ EOF
 }
 trap 'preexec_invoke_exec' DEBUG
 
-##############################################################################
-# 14) Enhanced nano
-##############################################################################
+# 13) Enhanced nano
 nano() {
     local new_files=()
     for arg in "$@"; do
-        # For new .sh
         if [[ "$arg" == *.sh ]] && [ ! -f "$arg" ]; then
             echo "#!/bin/bash" > "$arg"
             new_files+=("$arg")
         fi
-
-        # For .gitignore
         if [[ "$arg" == ".gitignore" ]] && [ ! -f "$arg" ]; then
             cat ~/.alfe.sh/git/faybian-scripts-org/default.gitignore > "$arg"
         fi
@@ -344,9 +305,7 @@ alias bashup='~/.alfe.sh/git/faybian-scripts-org/utils/cp_git_to_bashrc.sh'
 alias bup='~/.alfe.sh/git/faybian-scripts-org/utils/cp_git_to_bashrc.sh'
 alias alsh='bash'
 
-##############################################################################
-# 15) Misc
-##############################################################################
+# 14) Misc
 rs() {
     redshift -x && redshift -O "$1"
 }
@@ -372,4 +331,4 @@ alias rnm='rmn'
 alias nrm='rmn'
 alias e='exit'
 
-# End of File: .bashrc
+# End of File
