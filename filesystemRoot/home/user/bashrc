@@ -1,23 +1,26 @@
 #!/bin/bash
 # File_Rel_Path: 'filesystemRoot/home/user/bashrc'
 # File_Type: '.sh'
-# Squash_Source: 'c3c94ba38425135a53c45b7512332b37321a8eda'
 
-# Use fastfetch if installed, else neofetch (if that is installed).
-if command -v fastfetch &>/dev/null; then
-    fastfetch --logo none
-elif command -v neofetch &>/dev/null; then
-    neofetch --ascii_distro "none"
-fi
-
-# Only load if interactive
+##############################################################################
+# 1) Only load if interactive
+##############################################################################
 case $- in
     *i*) ;;
     *) return ;;
 esac
 
 ##############################################################################
-# 1) Environment variables and shell options
+# 2) Fastfetch or Neofetch
+##############################################################################
+if command -v fastfetch &>/dev/null; then
+    fastfetch --logo none
+elif command -v neofetch &>/dev/null; then
+    neofetch --ascii_distro "none"
+fi
+
+##############################################################################
+# 3) Basic Environment
 ##############################################################################
 HOST_ALIAS=$(hostname)
 TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils"
@@ -35,7 +38,7 @@ if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
 fi
 
 ##############################################################################
-# 2) Terminal color detection
+# 4) Detect Terminal Color Support
 ##############################################################################
 case "$TERM" in
     xterm-color|*-256color) color_prompt=yes ;;
@@ -50,31 +53,27 @@ if [ -n "$force_color_prompt" ]; then
 fi
 
 ##############################################################################
-# 3) Define ESC as a *real* escape character
+# 5) Define Real ESC
 ##############################################################################
-ESC="$(printf '\033')"  # ensures we have an actual ESC byte
+ESC="$(printf '\033')"  # actual escape character
 
 ##############################################################################
-# 4) Git prompt info
+# 6) Git Prompt Info
 ##############################################################################
 git_prompt_info() {
-    # Return if not in a git repo
     git rev-parse --is-inside-work-tree &>/dev/null || return
-
     local branch color status_output timestamp hash
+
+    branch=$(git symbolic-ref --short HEAD 2>/dev/null)
     timestamp=$(git show -s --format=%cd --date=format-local:'%m/%d/%y %H:%M' HEAD 2>/dev/null)
     hash=$(git rev-parse --short HEAD 2>/dev/null)
-    branch=$(git symbolic-ref --short HEAD 2>/dev/null)
     status_output=$(git status --porcelain 2>/dev/null)
 
-    # Use real ESC + bracketed \[ \] so bash knows these are zero-length.
     if [ -z "$status_output" ] && git status | grep -q "Your branch is up to date with"; then
-        # Clean repo
-        color="\[${ESC}[01;32m\]"  # bold green
+        color="\[${ESC}[01;32m\]"  # Bold green
         echo -n "${color}($hash, $branch, clean, $timestamp)\[${ESC}[00m\]"
     else
-        # Has changes
-        color="\[${ESC}[01;33m\]"  # bold yellow
+        color="\[${ESC}[01;33m\]"  # Bold yellow
         local num_changes
         num_changes=$(echo "$status_output" | wc -l | tr -d ' ')
         echo -n "${color}($hash, $branch, ${num_changes} changes, $timestamp)\[${ESC}[00m\]"
@@ -82,11 +81,10 @@ git_prompt_info() {
 }
 
 ##############################################################################
-# 5) Prompt
+# 7) Primary Prompt (PS1)
 ##############################################################################
 if [ "$color_prompt" = yes ]; then
-    # Build the prompt using real ESC references
-    # e.g. \[${ESC}[90m\] is "gray"; \[${ESC}[01;32m\] is "bold green"
+    # Colorful PS1 using real ESC references
     PS1="\[${ESC}[90m\]\$(date '+%m/%d/%y %H:%M:%S')\[${ESC}[00m\] ${debian_chroot:+($debian_chroot)}\[${ESC}[01;32m\]\u@$HOST_ALIAS\$(git_prompt_info)\[${ESC}[00m\]\n:\[${ESC}[01;34m\]\w\[${ESC}[00m\]\$ "
 else
     PS1="\$(date '+%m/%d/%y %H:%M:%S') ${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS\$(git_prompt_info)\n:\w\$ "
@@ -95,20 +93,16 @@ fi
 unset color_prompt force_color_prompt
 
 ##############################################################################
-# 6) Xterm window title
+# 8) If xterm-like, set window title
 ##############################################################################
 case "$TERM" in
     xterm*|rxvt*)
-        # Insert an invisible sequence for the window title
-        # e.g. \[${ESC}]0;...\a\] 
         PS1="\[${ESC}]0;${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS: \w\a\]$PS1"
-        ;;
-    *)
         ;;
 esac
 
 ##############################################################################
-# 7) dircolors, aliases, completions
+# 9) dircolors, Aliases, and Bash Completion
 ##############################################################################
 if [ -x /usr/bin/dircolors ]; then
     if [ -r ~/.dircolors ]; then
@@ -130,7 +124,7 @@ if ! shopt -oq posix; then
 fi
 
 ##############################################################################
-# 8) Enhanced cd command with logging
+# 10) Enhanced cd with JSON logging
 ##############################################################################
 cd() {
     local old_cwd="$PWD"
@@ -139,7 +133,7 @@ cd() {
     ls
 
     local new_cwd="$PWD"
-    local timestamp="$(date +%s%3N)"
+    local timestamp=$(date +%s%3N)
     local pid="$$"
     local user="$USER"
 
@@ -147,7 +141,6 @@ cd() {
     mkdir -p "$log_dir"
     local log_file="$log_dir/${timestamp}.json"
 
-    # Escape special characters
     local escaped_old_cwd
     local escaped_new_cwd
     local escaped_cd_command
@@ -171,7 +164,7 @@ EOF
 alias n='nano'
 
 ##############################################################################
-# 9) Display system info
+# 11) Info on login
 ##############################################################################
 echo "-------------"
 "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Language Versions:"
@@ -209,7 +202,7 @@ pd() {
 pd
 
 ##############################################################################
-# 10) Git function override
+# 12) Custom Git
 ##############################################################################
 git() {
     if [ "$1" == "fpush" ] || [ "$1" == "fp" ] || [ "$1" == "f" ]; then
@@ -217,12 +210,13 @@ git() {
         ~/.fayra/Whimsical/git/faybian-git_reset/git_fpush.sh "$@"
     elif [ "$1" == "s" ] || [ "$1" == "status" ]; then
         shift
-        sh -c "git status $*" | sed -e '/nothing to commit, working tree clean/ s/.*/\x1b[32m&\x1b[0m/'
+        sh -c "git status $*" | sed -e '/nothing to commit, working tree clean/ s/.*/'"${ESC}"'[32m&'"${ESC}"'[0m/'
     else
         command git "$@"
     fi
 }
 export -f git
+
 alias gitf='git f'
 
 history() {
@@ -236,7 +230,7 @@ dir_history() {
 export -f dir_history
 
 ##############################################################################
-# 11) Navigation shortcuts
+# 13) Navigation shortcuts
 ##############################################################################
 back() {
     local last_dir
@@ -252,7 +246,7 @@ alias cdb='back'
 alias b='back'
 
 ##############################################################################
-# 12) Window title management
+# 14) Window Title
 ##############################################################################
 update_window_title() {
     local home="${HOME%/}"
@@ -266,7 +260,7 @@ update_window_title() {
         SHORT_PWD="$PWD"
     fi
 
-    TITLE="$USER@$HOSTNAME:${SHORT_PWD}\$"
+    TITLE="$USER@$HOSTNAME:$SHORT_PWD\$"
     [ -n "$TITLE_OVERRIDE" ] && TITLE="$TITLE_OVERRIDE"
     echo -ne "${ESC}]0;${TITLE}\007"
 }
@@ -280,28 +274,22 @@ PROMPT_COMMAND="update_window_title"
 update_window_title
 
 ##############################################################################
-# 13) Log each command
+# 15) Log each command
 ##############################################################################
 preexec_invoke_exec() {
     [ -n "$COMP_LINE" ] && return
     [[ "$BASH_COMMAND" == "$PROMPT_COMMAND" || "$BASH_COMMAND" == "preexec"* ]] && return
 
     echo -e "${ESC}[0;32m$(date '+%m/%d/%y %H:%M:%S')${ESC}[0m"
-
     local command="$BASH_COMMAND"
     if [[ "$command" == *$'\n'* ]]; then
         command=$(echo "$command" | tr '\n' ';')
     fi
 
-    local timestamp
-    local pid
-    local user
-    local cwd
-
-    timestamp=$(date +%s%3N)
-    pid="$$"
-    user="$USER"
-    cwd="$PWD"
+    local timestamp=$(date +%s%3N)
+    local pid="$$"
+    local user="$USER"
+    local cwd="$PWD"
 
     local log_dir="$HOME/.alfe.sh/alsh/history/$pid"
     mkdir -p "$log_dir"
@@ -325,7 +313,7 @@ EOF
 trap 'preexec_invoke_exec' DEBUG
 
 ##############################################################################
-# 14) Enhanced nano
+# 16) Enhanced nano
 ##############################################################################
 nano() {
     local new_files=()
@@ -334,11 +322,11 @@ nano() {
             echo "#!/bin/bash" > "$arg"
             new_files+=("$arg")
         fi
-
         if [[ "$arg" == ".gitignore" ]] && [ ! -f "$arg" ]; then
             cat ~/.alfe.sh/git/faybian-scripts-org/default.gitignore > "$arg"
         fi
     done
+
     command nano "$@"
     echo "Nano session closed at $(date '+%Y-%m-%d %H:%M:%S')" >> "$HOME/.nano_history.log"
 
@@ -346,20 +334,19 @@ nano() {
         chmod +x "$f"
     done
 
-    # Remove start/end markers if they're the first/last lines
     for f in "$@"; do
         [ -f "$f" ] || continue
         sed -i -e '1{/^===== Start of file: /d}' -e '${/^===== End of file: /d}' "$f"
     done
 }
 
-##############################################################################
-# 15) Other utility aliases
-##############################################################################
 alias bashup='~/.alfe.sh/git/faybian-scripts-org/utils/cp_git_to_bashrc.sh'
 alias bup='~/.alfe.sh/git/faybian-scripts-org/utils/cp_git_to_bashrc.sh'
 alias alsh='bash'
 
+##############################################################################
+# 17) Misc
+##############################################################################
 rs() {
     redshift -x && redshift -O "$1"
 }
@@ -385,4 +372,4 @@ alias rnm='rmn'
 alias nrm='rmn'
 alias e='exit'
 
-# End of file: .bashrc
+# End of file
