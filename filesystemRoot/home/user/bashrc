@@ -50,8 +50,7 @@ git_prompt_info() {
         return
     fi
 
-    local branch
-    branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+    local branch=$(git symbolic-ref --short HEAD 2>/dev/null)
     local color status_output timestamp hash
     timestamp=$(git show -s --format=%cd --date=format-local:'%m/%d/%y %H:%M' HEAD 2>/dev/null)
     hash=$(git rev-parse --short HEAD 2>/dev/null)
@@ -62,8 +61,7 @@ git_prompt_info() {
         echo -n "${color}($hash, $branch, clean, $timestamp)\[\033[00m\]"
     else
         color="\[\033[01;33m\]"  # Orange
-        local num_changes
-        num_changes=$(echo "$status_output" | wc -l | tr -d ' ')
+        local num_changes=$(echo "$status_output" | wc -l | tr -d ' ')
         echo -n "${color}($hash, $branch, ${num_changes} changes, $timestamp)\[\033[00m\]"
     fi
 }
@@ -106,8 +104,7 @@ cd() {
     builtin cd "$@" && pwd && ls
     local new_cwd="$PWD"
 
-    local timestamp
-    timestamp=$(date +%s%3N)  # Milliseconds since epoch
+    local timestamp=$(date +%s%3N)  # Milliseconds since epoch
     local pid="$$"
     local user="$USER"
 
@@ -117,13 +114,10 @@ cd() {
     local log_file="$log_dir/${timestamp}.json"
 
     # Escape special characters in old_cwd and new_cwd
-    local escaped_old_cwd
-    escaped_old_cwd=$(printf '%s' "$old_cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
-    local escaped_new_cwd
-    escaped_new_cwd=$(printf '%s' "$new_cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    local escaped_old_cwd=$(printf '%s' "$old_cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    local escaped_new_cwd=$(printf '%s' "$new_cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
     local cd_command="cd $*"
-    local escaped_cd_command
-    escaped_cd_command=$(printf '%s' "$cd_command" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    local escaped_cd_command=$(printf '%s' "$cd_command" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
 
     # Write the JSON
     cat > "$log_file" <<EOF
@@ -208,8 +202,7 @@ export -f dir_history
 # Navigation shortcuts
 back() {
     # Navigate to the previous directory using dir_history
-    local last_dir
-    last_dir=$(~/.alfe.sh/alsh/dir_history.sh -n 2 | tail -n 1 | awk '{for(i=4;i<=NF;++i)printf "%s ",$i; print ""}' | sed 's/[[:space:]]*$//')
+    local last_dir=$(~/.alfe.sh/alsh/dir_history.sh -n 2 | tail -n 1 | awk '{for(i=4;i<=NF;++i)printf "%s ",$i; print ""}' | sed 's/[[:space:]]*$//')
     if [ -n "$last_dir" ] && [ -d "$last_dir" ]; then
         cd "$last_dir"
     else
@@ -278,8 +271,7 @@ preexec_invoke_exec() {
         command=$(echo "$command" | tr '\n' ';')
     fi
 
-    local timestamp
-    timestamp=$(date +%s%3N)
+    local timestamp=$(date +%s%3N)
     local pid="$$"
     local user="$USER"
     local cwd="$PWD"
@@ -289,10 +281,8 @@ preexec_invoke_exec() {
 
     local log_file="$log_dir/${timestamp}.json"
 
-    local escaped_command
-    escaped_command=$(printf '%s' "$command" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
-    local escaped_cwd
-    escaped_cwd=$(printf '%s' "$cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    local escaped_command=$(printf '%s' "$command" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    local escaped_cwd=$(printf '%s' "$cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
 
     cat > "$log_file" <<EOF
 {
@@ -369,4 +359,5 @@ rmn() {
     fi
 }
 alias rnm='rmn'
+alias nrm='rmn'
 alias e='exit'
