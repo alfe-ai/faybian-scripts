@@ -12,7 +12,7 @@ fi
 
 case $- in
     *i*) ;;
-      *) return;;
+    *) return;;
 esac
 
 # Environment variables
@@ -50,32 +50,39 @@ git_prompt_info() {
         return
     fi
 
-    local branch=$(git symbolic-ref --short HEAD 2>/dev/null)
-    local color status_output timestamp hash
+    local branch color status_output timestamp hash
     timestamp=$(git show -s --format=%cd --date=format-local:'%m/%d/%y %H:%M' HEAD 2>/dev/null)
     hash=$(git rev-parse --short HEAD 2>/dev/null)
+    branch=$(git symbolic-ref --short HEAD 2>/dev/null)
     status_output=$(git status --porcelain 2>/dev/null)
 
     if [ -z "$status_output" ] && git status | grep -q "Your branch is up to date with"; then
-        color="\[\033[01;32m\]"  # Green
-        echo -n "${color}($hash, $branch, clean, $timestamp)\[\033[00m\]"
+        color=$'\[\033[01;32m\]'  # Bold green
+        echo -n "${color}($hash, $branch, clean, $timestamp)$'\[\033[00m\]'"
     else
-        color="\[\033[01;33m\]"  # Orange
-        local num_changes=$(echo "$status_output" | wc -l | tr -d ' ')
-        echo -n "${color}($hash, $branch, ${num_changes} changes, $timestamp)\[\033[00m\]"
+        color=$'\[\033[01;33m\]'  # Bold yellow
+        local num_changes
+        num_changes=$(echo "$status_output" | wc -l | tr -d ' ')
+        echo -n "${color}($hash, $branch, ${num_changes} changes, $timestamp)$'\[\033[00m\]'"
     fi
 }
 
+# Set PS1 with ANSI-C quoting to ensure real ESC codes
 if [ "$color_prompt" = yes ]; then
-    PS1="\[\033[90m\]\$(date '+%m/%d/%y %H:%M:%S')\[\033[00m\] ${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@$HOST_ALIAS\$(git_prompt_info)\[\033[00m\]\n:\[\033[01;34m\]\w\[\033[00m\]\$ "
+    PS1=$'\[\033[90m\]'\
+"$(date '+%m/%d/%y %H:%M:%S')"\
+$'\[\033[00m\] '"${debian_chroot:+($debian_chroot)}"$\
+$'\[\033[01;32m\]\u@'$HOST_ALIAS'$(git_prompt_info)'\
+$'\[\033[00m\]\n:\[\033[01;34m\]\w\[\033[00m\]\$ '
 else
-    PS1="\$(date '+%m/%d/%y %H:%M:%S') ${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS\$(git_prompt_info)\n:\w\$ "
+    PS1=$'$(date \'+%m/%d/%y %H:%M:%S\') '"${debian_chroot:+($debian_chroot)}"'\u@'$HOST_ALIAS'$(git_prompt_info)\n:\w\$ '
 fi
 unset color_prompt force_color_prompt
 
+# If xterm-like, add window title
 case "$TERM" in
     xterm*|rxvt*)
-        PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS: \w\a\]$PS1"
+        PS1=$'\[\033]0;'${debian_chroot:+($debian_chroot)}$'\u@'$HOST_ALIAS$': \w\007\]'$PS1
         ;;
     *)
         ;;
@@ -104,7 +111,7 @@ cd() {
     builtin cd "$@" && pwd && ls
     local new_cwd="$PWD"
 
-    local timestamp=$(date +%s%3N)  # Milliseconds since epoch
+    local timestamp=$(date +%s%3N)
     local pid="$$"
     local user="$USER"
 
@@ -113,14 +120,17 @@ cd() {
 
     local log_file="$log_dir/${timestamp}.json"
 
-    # Escape special characters in old_cwd and new_cwd
-    local escaped_old_cwd=$(printf '%s' "$old_cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
-    local escaped_new_cwd=$(printf '%s' "$new_cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
-    local cd_command="cd $*"
-    local escaped_cd_command=$(printf '%s' "$cd_command" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    # Escape special characters
+    local escaped_old_cwd
+    local escaped_new_cwd
+    local escaped_cd_command
+    escaped_old_cwd=$(printf '%s' "$old_cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    escaped_new_cwd=$(printf '%s' "$new_cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    cd_command="cd $*"
+    escaped_cd_command=$(printf '%s' "$cd_command" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
 
-    # Write the JSON
-    cat > "$log_file" <<EOF
+    # JSON log
+    cat <<EOF > "$log_file"
 {
     "timestamp": "$timestamp",
     "pid": "$pid",
@@ -136,21 +146,20 @@ EOF
 alias n='nano'
 
 echo "-------------"
-$TEXTC_DIRECTORY/textc.sh --color darkred --text "Language Versions:"
+"$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Language Versions:"
 echo "Node.js version: $(node -v)"
 echo ""
 
 # Improved filesystem display function
 d() {
     echo "-------------"
-    $TEXTC_DIRECTORY/textc.sh --color darkred --text "Filesystem:"
+    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Filesystem:"
     echo "Filesystem      Size  Used Avail Use% Mounted on"
-    # Only show the / mount and mounts starting with /mnt
     df -h | awk 'NR>1 && ($NF=="/" || $NF ~ /^\/mnt/)'
     echo ""
 
     echo "-------------"
-    $TEXTC_DIRECTORY/textc.sh --color darkred --text "Screens:"
+    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Screens:"
     screen -list
     echo ""
 }
@@ -159,7 +168,7 @@ d
 # Project directory info
 pd() {
     echo "-------------"
-    $TEXTC_DIRECTORY/textc.sh --color darkred --text "Git Status:"
+    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Git Status:"
     git status
     echo ""
     git log -n 3 --pretty=format:'%H %ai %an <%ae> %s' --abbrev-commit
@@ -167,13 +176,13 @@ pd() {
     git remote -v
     echo ""
     echo "-------------"
-    $TEXTC_DIRECTORY/textc.sh --color darkred --text "Current Directory:"
+    "$TEXTC_DIRECTORY/textc.sh" --color darkred --text "Current Directory:"
     pwd
     echo "-------------"
 }
 pd
 
-# Define the git function and export it before calling exec_stage
+# Git function override
 git() {
     if [ "$1" == "fpush" ] || [ "$1" == "fp" ] || [ "$1" == "f" ]; then
         shift
@@ -201,8 +210,8 @@ export -f dir_history
 
 # Navigation shortcuts
 back() {
-    # Navigate to the previous directory using dir_history
-    local last_dir=$(~/.alfe.sh/alsh/dir_history.sh -n 2 | tail -n 1 | awk '{for(i=4;i<=NF;++i)printf "%s ",$i; print ""}' | sed 's/[[:space:]]*$//')
+    local last_dir
+    last_dir=$(~/.alfe.sh/alsh/dir_history.sh -n 2 | tail -n 1 | awk '{for(i=4;i<=NF;++i)printf "%s ",$i; print ""}' | sed 's/[[:space:]]*$//')
     if [ -n "$last_dir" ] && [ -d "$last_dir" ]; then
         cd "$last_dir"
     else
@@ -224,14 +233,17 @@ update_window_title() {
         SHORT_PWD="$PWD"
     fi
 
-    TITLE="$USER@$HOSTNAME:${SHORT_PWD}$"
-    # Timestamp set to grey in the updated PS1
-    PS1="${VIRTUAL_ENV_PROMPT}${debian_chroot:+($debian_chroot)}\[\033[90m\]\$(date '+%m/%d/%y %H:%M:%S')\[\033[00m\] \[\033[01;32m\]\u@$HOST_ALIAS\$(git_prompt_info)\[\033[00m\]\n:\[\033[01;34m\]${SHORT_PWD}\[\033[00m\]\$ "
+    TITLE="$USER@$HOSTNAME:${SHORT_PWD}\$"
+
+    # Rebuild the PS1 using ANSI-C quoting
+    PS1="$VIRTUAL_ENV_PROMPT${debian_chroot:+($debian_chroot)}"\
+$'\[\033[90m\]'"\$(date '+%m/%d/%y %H:%M:%S')"\
+$'\[\033[00m\] \[\033[01;32m\]\u@'$HOST_ALIAS'$(git_prompt_info)'\
+$'\[\033[00m\]\n:\[\033[01;34m\]'${SHORT_PWD}$'\[\033[00m\]\$ '
 
     if [[ -n "$TITLE_OVERRIDE" ]]; then
         TITLE="$TITLE_OVERRIDE"
     fi
-
     echo -ne "\033]0;$TITLE\007"
 }
 
@@ -241,7 +253,6 @@ set_title() {
 }
 
 PROMPT_COMMAND="update_window_title"
-
 update_window_title
 
 # Shell environment aliases
@@ -281,8 +292,10 @@ preexec_invoke_exec() {
 
     local log_file="$log_dir/${timestamp}.json"
 
-    local escaped_command=$(printf '%s' "$command" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
-    local escaped_cwd=$(printf '%s' "$cwd" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    local escaped_command
+    local escaped_cwd
+    escaped_command=$(printf '%s' "$command" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
+    escaped_cwd=$(printf '%s' "$cwd"    | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g')
 
     cat > "$log_file" <<EOF
 {
