@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Alfe
+Comment=Alfe Dev AI
+Exec=/home/syl/run_alfe_dev.sh
+Terminal=true
+Categories=Development;IDE;
