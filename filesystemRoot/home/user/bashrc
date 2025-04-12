@@ -250,6 +250,7 @@ update_window_title
 alias cb='function _cb() { clear && bash; }; _cb'
 alias c='clear'
 alias cl='clear'
+alias clr='clear'
 alias cv='function _cv() { clear; n; gpt_print; }; _cv'
 alias cx='chmod +x'
 alias kdirstat='qdirstat'
