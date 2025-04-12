@@ -252,6 +252,7 @@ alias c='clear'
 alias cl='clear'
 alias cv='function _cv() { clear; n; gpt_print; }; _cv'
 alias cx='function _cx() { clear; n; gpt_print; run_gpt; }; _cx'
+alias kdirstat='qdirstat'
 
 # Directory and filesystem shortcuts
 alias cgit='cd ~/.alfe.sh/git'
