@@ -159,7 +159,7 @@ d
 # Project directory info
 pd() {
     echo "-------------"
-    $TEXTC_DIRECTORY[textc.sh --color darkred --text "Git Status:"
+    $TEXTC_DIRECTORY/textc.sh --color darkred --text "Git Status:"
     git status
     echo ""
     git log -n 3 --pretty=format:'%H %ai %an <%ae> %s' --abbrev-commit
