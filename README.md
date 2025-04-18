@@ -17,3 +17,6 @@ Set Startup Apps:
 
 Config:  
 ![image](https://github.com/user-attachments/assets/05121258-719e-464a-96de-f9ff52b59550)
+
+Config:
+![image](https://github.com/user-attachments/assets/87d78f51-5cf2-4cbf-9acf-a9a62113f722)
