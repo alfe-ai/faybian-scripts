@@ -2,12 +2,12 @@
 # File_Rel_Path: 'filesystemRoot/home/user/bashrc'
 # File_Type: '.sh'
 # Squash_Source: 'c3c94ba38425135a53c45b7512332b37321a8eda'
-# Version: 'beta-v0.13.1'
+# Version: 'beta-v0.13.2'   # bumped
 
 TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils" # todo symlink .alfe to .alfe.sh or something
 
 $TEXTC_DIRECTORY/textc.sh --color darkred --text "ALSH Version:"
-echo "beta-v0.13.1"
+echo "beta-v0.13.2"
 echo ""
 echo "----------"
 
@@ -183,15 +183,47 @@ pd
 
 # Define the git function and export it before calling exec_stage
 git() {
+    # Fast‑push helpers
     if [ "$1" == "fpush" ] || [ "$1" == "fp" ] || [ "$1" == "f" ]; then
         shift
         ~/.fayra/Whimsical/git/faybian-git_reset/git_fpush.sh "$@"
-    elif [ "$1" == "s" ] || [ "$1" == "status" ]; then
+        return
+    fi
+
+    # Quick status colourised
+    if [ "$1" == "s" ] || [ "$1" == "status" ]; then
         shift
         sh -c "git status $*" | sed -e '/nothing to commit, working tree clean/ s/.*/\x1b[32m&\x1b[0m/'
-    else
-        command git "$@"
+        return
     fi
+
+    # Remove any -v flag (or 'v' embedded inside grouped flags) for `git rm`
+    if [ "$1" == "rm" ]; then
+        shift
+        local new_args=()
+        for arg in "$@"; do
+            # Skip stand‑alone -v / --verbose
+            if [ "$arg" == "-v" ] || [ "$arg" == "--verbose" ]; then
+                continue
+            fi
+            # Strip 'v' from grouped short options (e.g. -rfv -> -rf)
+            if [[ "$arg" == -* && "$arg" == *v* ]]; then
+                local filtered="${arg//v/}"
+                # If result is just '-' then ignore
+                if [ "$filtered" == "-" ]; then
+                    continue
+                fi
+                new_args+=("$filtered")
+            else
+                new_args+=("$arg")
+            fi
+        done
+        command git rm "${new_args[@]}"
+        return
+    fi
+
+    # Fallback – call git untouched
+    command git "$@"
 }
 export -f git
 
@@ -388,3 +420,4 @@ alias rnm='rmn'
 alias nrm='rmn'
 alias e='exit'
 alias gf='git f'
+
