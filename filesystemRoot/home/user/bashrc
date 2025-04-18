@@ -387,3 +387,4 @@ rmn() {
 alias rnm='rmn'
 alias nrm='rmn'
 alias e='exit'
+alias gf='git f'
