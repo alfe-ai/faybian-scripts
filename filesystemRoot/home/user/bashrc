@@ -2,12 +2,12 @@
 # File_Rel_Path: 'filesystemRoot/home/user/bashrc'
 # File_Type: '.sh'
 # Squash_Source: 'c3c94ba38425135a53c45b7512332b37321a8eda'
-# Version: 'beta-0.41.0'
+# Version: 'beta-0.41.1'
 
 TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils" # todo symlink .alfe to .alfe.sh or something
 
 $TEXTC_DIRECTORY/textc.sh --color darkred --text "ALSH Version:"
-echo "beta-0.41.0"
+echo "beta-0.41.1"
 echo ""
 echo "----------"
 
@@ -30,6 +30,8 @@ HISTSIZE=1000
 HISTFILESIZE=2000
 HISTTIMEFORMAT="%F %I:%M:%S %p "
 export VIRTUAL_ENV_DISABLE_PROMPT=1
+# Force English (US) locale for time so %I/%p give 12-hour with AM/PM
+export LC_TIME=en_US.UTF-8
 
 # Shell options
 shopt -s histappend
@@ -75,9 +77,9 @@ git_prompt_info() {
 
 if [ "$color_prompt" = yes ]; then
     # Timestamp in grey, non-bold
-    PS1="\[\033[90m\]\$(date '+%m/%d/%y %I:%M:%S %p')\[\033[00m\] ${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+    PS1="\[\033[90m\]\$(LC_TIME=en_US.UTF-8 date '+%m/%d/%y %I:%M:%S %p')\[\033[00m\] ${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
 else
-    PS1="\$(date '+%m/%d/%y %I:%M:%S %p') ${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS$(git_prompt_info):\w\$ "
+    PS1="\$(LC_TIME=en_US.UTF-8 date '+%m/%d/%y %I:%M:%S %p') ${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS$(git_prompt_info):\w\$ "
 fi
 unset color_prompt force_color_prompt
 
@@ -267,7 +269,7 @@ update_window_title() {
     
     TITLE="$USER@$HOSTNAME:${SHORT_PWD}$"
     # Timestamp set to grey in the updated PS1
-    PS1="${VIRTUAL_ENV_PROMPT}${debian_chroot:+($debian_chroot)}\[\033[90m\]\$(date '+%m/%d/%y %I:%M:%S %p')\[\033[00m\] \[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]${SHORT_PWD}\[\033[00m\]\$ "
+    PS1="${VIRTUAL_ENV_PROMPT}${debian_chroot:+($debian_chroot)}\[\033[90m\]\$(LC_TIME=en_US.UTF-8 date '+%m/%d/%y %I:%M:%S %p')\[\033[00m\] \[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]${SHORT_PWD}\[\033[00m\]\$ "
     
     if [[ -n "$TITLE_OVERRIDE" ]]; then
         TITLE="$TITLE_OVERRIDE"
@@ -305,7 +307,7 @@ preexec_invoke_exec() {
     [ -n "$COMP_LINE" ] && return
     [[ "$BASH_COMMAND" == "$PROMPT_COMMAND" || "$BASH_COMMAND" == "preexec"* ]] && return
 
-    echo -e "\033[0;32m$(date '+%m/%d/%y %I:%M:%S %p')\033[0m"
+    echo -e "\033[0;32m$(LC_TIME=en_US.UTF-8 date '+%m/%d/%y %I:%M:%S %p')\033[0m"
 
     local command="${BASH_COMMAND}"
     if [[ "$command" == *$'\n'* ]]; then
@@ -359,7 +361,7 @@ nano() {
     command nano "$@"
 
     # Post-execute hook after nano
-    echo "Nano session closed at $(date '+%Y-%m-%d %I:%M:%S %p')" >> "$HOME/.nano_history.log"
+    echo "Nano session closed at $(LC_TIME=en_US.UTF-8 date '+%Y-%m-%d %I:%M:%S %p')" >> "$HOME/.nano_history.log"
 
     for f in "${new_files[@]}"; do
         chmod +x "$f"
@@ -420,5 +422,3 @@ alias rnm='rmn'
 alias nrm='rmn'
 alias e='exit'
 alias gf='git f'
-
-
