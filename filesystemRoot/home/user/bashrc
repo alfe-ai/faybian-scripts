@@ -2,12 +2,12 @@
 # File_Rel_Path: 'filesystemRoot/home/user/bashrc'
 # File_Type: '.sh'
 # Squash_Source: 'c3c94ba38425135a53c45b7512332b37321a8eda'
-# Version: 'beta-v0.14.0'
+# Version: 'beta-0.41.0'
 
 TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils" # todo symlink .alfe to .alfe.sh or something
 
 $TEXTC_DIRECTORY/textc.sh --color darkred --text "ALSH Version:"
-echo "beta-v0.14.0"
+echo "beta-0.41.0"
 echo ""
 echo "----------"
 
