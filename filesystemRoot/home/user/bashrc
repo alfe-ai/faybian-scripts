@@ -360,11 +360,9 @@ alias nrm='rmn'
 alias e='exit'
 alias gf='git f'
 
-# Revised fallback logic for bat/batcat
-if command -v bat &>/dev/null; then
-    alias cat='bat --paging=never --style=plain -l json'
-elif command -v batcat &>/dev/null; then
+# If bat is missing but batcat is present, alias bat to batcat
+if ! command -v bat &>/dev/null && command -v batcat &>/dev/null; then
     alias bat='batcat'
-    alias cat='batcat --paging=never --style=plain -l json'
 fi
 
+alias cat='bat --paging=never --style=plain -l json'
