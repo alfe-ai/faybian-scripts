@@ -2,7 +2,7 @@
 # File_Rel_Path: 'filesystemRoot/home/user/bashrc'
 # File_Type: '.sh'
 # Squash_Source: 'c3c94ba38425135a53c45b7512332b37321a8eda'
-ALSH_VERSION="beta-0.42.22"
+ALSH_VERSION="beta-0.42.23"
 export ALSH_VERSION
 
 TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils" # todo symlink .alfe to .alfe.sh or something
@@ -359,4 +359,10 @@ alias rnm='rmn'
 alias nrm='rmn'
 alias e='exit'
 alias gf='git f'
+
+# If bat is missing but batcat is present, alias bat to batcat
+if ! command -v bat &>/dev/null && command -v batcat &>/dev/null; then
+    alias bat='batcat'
+fi
+
 alias cat='bat --paging=never --style=plain -l json'
