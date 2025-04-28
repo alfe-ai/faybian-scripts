@@ -66,10 +66,10 @@ git_prompt_info() {
     status_output=$(git status --porcelain 2>/dev/null)
     
     if [ -z "$status_output" ] && git status | grep -q "Your branch is up to date with"; then
-        color="\[\033[01;32m\]"  # Green
+        color="\[\033[32m\]"  # Green – no bold
         echo "${color}($hash, $branch, clean, $timestamp)\[\033[00m\]"
     else
-        color="\[\033[01;33m\]"  # Orange
+        color="\[\033[33m\]"  # Yellow/Orange – no bold
         local num_changes=$(echo "$status_output" | wc -l | tr -d ' ')
         echo "${color}($hash, $branch, ${num_changes} changes, $timestamp)\[\033[00m\]"
     fi
@@ -422,3 +422,4 @@ alias rnm='rmn'
 alias nrm='rmn'
 alias e='exit'
 alias gf='git f'
+
