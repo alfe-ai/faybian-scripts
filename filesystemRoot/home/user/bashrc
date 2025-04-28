@@ -2,10 +2,10 @@
 # File_Rel_Path: 'filesystemRoot/home/user/bashrc'
 # File_Type: '.sh'
 # Squash_Source: 'c3c94ba38425135a53c45b7512332b37321a8eda'
-# Version: 'beta-0.41.3'
+# Version: 'beta-0.41.4'
 
 # Global AlSH version
-ALSH_VERSION="beta-0.41.3"
+ALSH_VERSION="beta-0.41.4"
 export ALSH_VERSION
 
 TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils" # todo symlink .alfe to .alfe.sh or something
@@ -382,6 +382,7 @@ nano() {
 alias bashup='~/.alfe.sh/git/faybian-scripts-org/utils/cp_git_to_bashrc.sh'
 alias bup='~/.alfe.sh/git/faybian-scripts-org/utils/cp_git_to_bashrc.sh'
 alias alsh='bash'
+alias bashrc='bash'
 
 # Redshift function
 rs() {
@@ -426,3 +427,4 @@ alias rnm='rmn'
 alias nrm='rmn'
 alias e='exit'
 alias gf='git f'
+
