@@ -6,7 +6,7 @@
 
 TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils" # todo symlink .alfe to .alfe.sh or something
 
-$TEXTC_DIRECTORY/textc.sh --color darkred --text "ALSH Version:"
+$TEXTC_DIRECTORY/textc.sh --color darkred --text "AlSH Version:"
 echo "beta-0.41.2"
 echo ""
 echo "----------"
@@ -422,4 +422,5 @@ alias rnm='rmn'
 alias nrm='rmn'
 alias e='exit'
 alias gf='git f'
+
 
