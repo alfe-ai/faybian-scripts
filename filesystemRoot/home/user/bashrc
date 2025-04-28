@@ -2,7 +2,7 @@
 # File_Rel_Path: 'filesystemRoot/home/user/bashrc'
 # File_Type: '.sh'
 # Squash_Source: 'c3c94ba38425135a53c45b7512332b37321a8eda'
-ALSH_VERSION="beta-0.42.21"
+ALSH_VERSION="beta-0.42.22"
 export ALSH_VERSION
 
 TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils" # todo symlink .alfe to .alfe.sh or something
@@ -80,7 +80,7 @@ if [ "$color_prompt" = yes ]; then
     # Timestamp and version in grey, non-bold
     PS1="\[\033[90m\]\$(LC_TIME=en_US.UTF-8 date '+%m/%d/%y %I:%M:%S %p') AlSH $ALSH_VERSION\[\033[00m\] ${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
 else
-    PS1="\$(LC_TIME=en_US.UTF-8 date '+%m/%d/%y %I:%M:%S %p') AlSH v$ALSH_VERSION ${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS$(git_prompt_info):\w\$ "
+    PS1="\$(LC_TIME=en_US.UTF-8 date '+%m/%d/%y %I:%M:%S %p') AlSH $ALSH_VERSION ${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS$(git_prompt_info):\w\$ "
 fi
 unset color_prompt force_color_prompt
 
@@ -270,7 +270,7 @@ update_window_title() {
     
     TITLE="$USER@$HOSTNAME:${SHORT_PWD}$"
     # Timestamp and version set to grey
-    PS1="${VIRTUAL_ENV_PROMPT}${debian_chroot:+($debian_chroot)}\[\033[90m\]\$(LC_TIME=en_US.UTF-8 date '+%m/%d/%y %I:%M:%S %p') AlSH v$ALSH_VERSION\[\033[00m\] \[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]${SHORT_PWD}\[\033[00m\]\$ "
+    PS1="${VIRTUAL_ENV_PROMPT}${debian_chroot:+($debian_chroot)}\[\033[90m\]\$(LC_TIME=en_US.UTF-8 date '+%m/%d/%y %I:%M:%S %p') AlSH $ALSH_VERSION\[\033[00m\] \[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]${SHORT_PWD}\[\033[00m\]\$ "
     
     if [[ -n "$TITLE_OVERRIDE" ]]; then
         TITLE="$TITLE_OVERRIDE"
