@@ -78,7 +78,7 @@ git_prompt_info() {
 
 if [ "$color_prompt" = yes ]; then
     # Timestamp and version in grey, non-bold
-    PS1="\[\033[90m\]\$(LC_TIME=en_US.UTF-8 date '+%m/%d/%y %I:%M:%S %p') AlSH v$ALSH_VERSION\[\033[00m\] ${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+    PS1="\[\033[90m\]\$(LC_TIME=en_US.UTF-8 date '+%m/%d/%y %I:%M:%S %p') AlSH $ALSH_VERSION\[\033[00m\] ${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@$HOST_ALIAS$(git_prompt_info)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
 else
     PS1="\$(LC_TIME=en_US.UTF-8 date '+%m/%d/%y %I:%M:%S %p') AlSH v$ALSH_VERSION ${debian_chroot:+($debian_chroot)}\u@$HOST_ALIAS$(git_prompt_info):\w\$ "
 fi
