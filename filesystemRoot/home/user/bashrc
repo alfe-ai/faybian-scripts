@@ -2,7 +2,7 @@
 # File_Rel_Path: 'filesystemRoot/home/user/bashrc'
 # File_Type: '.sh'
 # Squash_Source: 'c3c94ba38425135a53c45b7512332b37321a8eda'
-ALSH_VERSION="beta-0.45.0"
+ALSH_VERSION="beta-0.46.0"
 TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils" # todo symlink .alfe to .alfe.sh or something
 export ALSH_VERSION
 
@@ -370,4 +370,24 @@ alias cat='bat --paging=never --style=plain -l json'
 alias ll='lsl'
 alias gits='git s'
 alias gs='git s'
+
+# ------------------------------------------------------------------
+#  Auto-cat for non-executable files
+# ------------------------------------------------------------------
+command_not_found_handle() {
+    local cmd="$1"
+    # Only act if a regular readable, NON-executable file exists in CWD
+    if [ -f "./$cmd" ] && [ ! -x "./$cmd" ] && [ -r "./$cmd" ]; then
+        cat "./$cmd"
+        return 0
+    fi
+
+    # Fallback to system handler if present
+    if command -v command-not-found >/dev/null 2>&1; then
+        command-not-found -- "$cmd"
+    else
+        echo "$cmd: command not found"
+    fi
+    return 127
+}
 
