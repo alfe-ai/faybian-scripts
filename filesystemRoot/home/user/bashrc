@@ -2,12 +2,12 @@
 # File_Rel_Path: 'filesystemRoot/home/user/bashrc'
 # File_Type: '.sh'
 # Squash_Source: 'c3c94ba38425135a53c45b7512332b37321a8eda'
-# Version: 'beta-0.41.2.2'
+# Version: 'beta-0.41.2.3'
 
 TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils" # todo symlink .alfe to .alfe.sh or something
 
 $TEXTC_DIRECTORY/textc.sh --color darkred --text "ALSH Version:"
-echo "beta-0.41.2.2"
+echo "beta-0.41.2.3"
 echo ""
 echo "----------"
 
@@ -36,6 +36,8 @@ export LC_TIME=en_US.UTF-8
 # Shell options
 shopt -s histappend
 shopt -s checkwinsize
+# Automatically cd into directory names (handles “config/” case)
+shopt -s autocd
 
 if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
     debian_chroot=$(cat /etc/debian_chroot)
@@ -425,3 +427,4 @@ alias gf='git f'
 alias ll='lsl'
 alias gits='git s'
 alias gs='git s'
+
