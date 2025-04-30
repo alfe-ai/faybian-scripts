@@ -2,7 +2,7 @@
 # File_Rel_Path: 'filesystemRoot/home/user/bashrc'
 # File_Type: '.sh'
 # Squash_Source: 'c3c94ba38425135a53c45b7512332b37321a8eda'
-ALSH_VERSION="beta-0.45.01"
+ALSH_VERSION="beta-0.45.02"
 TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils" # todo symlink .alfe to .alfe.sh or something
 export ALSH_VERSION
 
@@ -304,6 +304,12 @@ alias cdgit='cd ~/.alfe.sh/git'
 alias lsl='ls -lahtr --group-directories-first --color=auto'
 alias lsf='ls -lahtr --color=always | grep --color=always -v "^d"'
 
+# Image-description helper aliases
+alias imagedesc="$HOME/git/imgs_db/imagedesc.sh"
+alias imgdesc="$HOME/git/imgs_db/imagedesc.sh"
+alias imaged="$HOME/git/imgs_db/imagedesc.sh"
+alias imgd="$HOME/git/imgs_db/imagedesc.sh"
+
 # ------------------------------------------------------------------
 #  Bashrc updater
 # ------------------------------------------------------------------
@@ -390,4 +396,3 @@ command_not_found_handle() {
     fi
     return 127
 }
-
