@@ -309,6 +309,7 @@ alias imagedesc="$HOME/git/imgs_db/imagedesc.sh"
 alias imgdesc="$HOME/git/imgs_db/imagedesc.sh"
 alias imaged="$HOME/git/imgs_db/imagedesc.sh"
 alias imgd="$HOME/git/imgs_db/imagedesc.sh"
+alias rmbg="$HOME/git/logistica-remove_image_bg/run.sh" #/mnt/part5/dot_fayra/Whimsical/git/logistica-remove_image_bg
 
 # ------------------------------------------------------------------
 #  Bashrc updater
