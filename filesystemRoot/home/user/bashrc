@@ -2,7 +2,7 @@
 # File_Rel_Path: 'filesystemRoot/home/user/bashrc'
 # File_Type: '.sh'
 # Squash_Source: 'c3c94ba38425135a53c45b7512332b37321a8eda'
-ALSH_VERSION="beta-0.45.04"
+ALSH_VERSION="beta-0.45.05"
 TEXTC_DIRECTORY="$HOME/.alfe.sh/FaybianScripts/utils" # todo symlink .alfe to .alfe.sh or something
 export ALSH_VERSION
 
@@ -377,6 +377,7 @@ alias cat='bat --paging=never --style=plain -l json'
 alias ll='lsl'
 alias gits='git s'
 alias gs='git s'
+alias clsl='clear && lsl'
 
 # ------------------------------------------------------------------
 #  Auto-cat for non-executable files
